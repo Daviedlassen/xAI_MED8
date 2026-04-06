@@ -1,19 +1,14 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List
 
+# Import your routers
+from backend.routers.fruits import router as fruits_router
+from backend.routers.ml_processor import router as ml_router
 
-class Fruit(BaseModel):
-    name: str
+app = FastAPI(title="P8Project API", debug=True)
 
-
-class Fruits(BaseModel):
-    fruits: List[Fruit]
-
-app = FastAPI(debug=True)
-
+# CORS Configuration
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -27,19 +22,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-memory_db = {"fruits": []}
+# Include the Routers
+app.include_router(fruits_router)
+app.include_router(ml_router)
 
-
-@app.get("/fruits", response_model=Fruits)
-def get_fruits():
-    return Fruits(fruits=memory_db["fruits"])
-
-
-@app.post("/fruits")
-def add_fruit(fruit: Fruit):
-    memory_db["fruits"].append(fruit)
-    return fruit
-
+@app.get("/")
+def root():
+    return {"message": "Welcome to the P8Project API. Head to /docs for the interactive UI."}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Note: Using "main:app" string allows the --reload feature to work properly
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

@@ -34,49 +34,72 @@ async def upload_csv(file: UploadFile = File(...)):
 
 # ... (keep your imports and upload-csv router the same) ...
 
+from pydantic import BaseModel
+
 class PatientState(BaseModel):
-    bpSystolic: float
+    # These MUST match the keys in your React useState exactly
+    sys_blood_pressure: float
+    dis_blood_pressure: float
     glucose: float
-    physioTime: float
-    ldl: float
+    cholesterol: float
+    age: float
+    nihss_score: float
+    discharge_nihss_score: float
+    prestroke_mrs: float
+    tici_score: float
+    perfusion_core: float
+    hypoperfusion_core: float
+    risk_smoker: bool
+    risk_diabetes: bool
+    risk_hypertension: bool
+    risk_hyperlipidemia: bool
+    risk_congestive_heart_failure: bool
+    risk_coronary_artery_disease_or_myocardial_infarction: bool
+    risk_hiv: bool
+    risk_previous_hemorrhagic_stroke: bool
+    risk_previous_ischemic_stroke: bool
+    covid_test: bool
+    hospital_stroke: bool
+    imaging_done: bool
+    # Add more from your list as needed...
+    door_to_imaging: float
+    door_to_needle: float
+    onset_to_door: float
+    prenotification: bool
+    physiotherapy_start_within_3days: bool
+    occup_physiotherapy_received: bool
 
 
 @router.post("/predict")
 async def predict_outcome(data: PatientState):
-    # mRS logic: 0 is best (No symptoms), 6 is worst (Dead).
-    # We start with a baseline "Moderate Disability" (mRS 3)
     base_mrs = 3.0
 
-    # Positive values here INCREASE the mRS (make it worse/more red)
-    # Negative values here DECREASE the mRS (make it better/more green)
+    # FIX: Change data.bpSystolic to data.sys_blood_pressure
+    impact_bp = (data.sys_blood_pressure - 120) * 0.05
 
-    # High BP (>120) increases disability score
-    impact_bp = (data.bpSystolic - 120) * 0.05
+    # FIX: Change timing to use door_to_needle
+    impact_timing = (data.door_to_needle - 60) * 0.02
 
-    # High Glucose (>110) increases disability score
-    impact_glucose = (data.glucose - 110) * 0.02
+    # FIX: Change data.nihss to data.nihss_score
+    impact_nihss = (data.nihss_score - 10) * 0.1
 
-    # DELAYED Physio (>24hrs) increases disability score
-    impact_physio = (data.physioTime - 24) * 0.03
+    # FIX: Change data.ldl to data.cholesterol
+    impact_chol = (data.cholesterol - 3.5) * 0.1
 
-    # High LDL (>3.0) increases disability score
-    impact_ldl = (data.ldl - 3.0) * 0.2
+    raw_score = base_mrs + impact_bp + impact_timing + impact_nihss + impact_chol
 
-    # Calculate raw mRS
-    raw_score = base_mrs + impact_bp + impact_glucose + impact_physio + impact_ldl
+    # Binary risks
+    if data.risk_smoker: raw_score += 0.4
+    if data.risk_diabetes: raw_score += 0.5
 
-    # Clamp the score strictly between 0 and 6
-    final_mrs = max(0, min(6, raw_score))
+    final_score = max(0, min(6, raw_score))
 
     return {
-        "recoveryScore": round(final_mrs, 1),
+        "recoveryScore": round(final_score, 1),
         "impacts": [
-            # Note: We invert the 'value' for the SHAP bars
-            # so that 'Better' results push the bar LEFT (negative)
-            # and 'Worse' results push the bar RIGHT (positive).
-            {"feature": "BP Systolic", "value": round(impact_bp, 2)},
-            {"feature": "Glucose", "value": round(impact_glucose, 2)},
-            {"feature": "Physio Initiation", "value": round(impact_physio, 2)},
-            {"feature": "LDL Cholesterol", "value": round(impact_ldl, 2)},
+            {"feature": "Blood Pressure", "value": round(impact_bp, 2)},
+            {"feature": "Treatment Window", "value": round(impact_timing, 2)},
+            {"feature": "NIHSS Severity", "value": round(impact_nihss, 2)},
+            {"feature": "Cholesterol", "value": round(impact_chol, 2)}
         ]
     }

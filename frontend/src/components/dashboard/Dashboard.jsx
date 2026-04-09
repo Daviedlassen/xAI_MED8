@@ -26,7 +26,6 @@ import "./Dashboard.css";
 
 const MAX_MODULES = 20;
 
-
 const availableModules = [
   { id: "history", label: "📋 Patient History", defaultSize: "size-wide" },
   { id: "analysis", label: "📊 SHAP Analysis", defaultSize: "size-large" },
@@ -35,43 +34,39 @@ const availableModules = [
 ];
 
 const Dashboard = () => {
-  // 1. STATE: Patient Input Values
+  // 1. STATE: Clinical Data
   const [patientData, setPatientData] = useState({
     nihss: 8,
     age: 65,
     glucose: 140,
   });
 
-  // 2. LOGIC: Simulated SHAP calculation based on inputs
+  // 2. LOGIC: Re-calculate SHAP & mRS Score
   const shapData = useMemo(() => {
     return [
-        { name: "NIHSS Score", value: parseFloat((patientData.nihss * 0.05).toFixed(2)) },
-        { name: "Age", value: parseFloat((patientData.age * 0.004).toFixed(2)) },
-        { name: "Blood Glucose", value: parseFloat(((patientData.glucose - 100) * 0.001).toFixed(2)) },
-        { name: "Prior Stroke", value: 0.15 },
+      { name: "NIHSS Score", value: parseFloat((patientData.nihss * 0.05).toFixed(2)) },
+      { name: "Age", value: parseFloat((patientData.age * 0.004).toFixed(2)) },
+      { name: "Blood Glucose", value: parseFloat(((patientData.glucose - 100) * 0.001).toFixed(2)) },
+      { name: "Prior Stroke", value: 0.15 },
     ];
   }, [patientData]);
 
-const riskScore = useMemo(() => {
-  // Baseline mRS (starting point)
-  const baseline = 1;
-  // Sum SHAP values (assuming they are calibrated for mRS impact)
-  const sumSHAP = shapData.reduce((acc, item) => acc + item.value, 0);
+  const riskScore = useMemo(() => {
+    const baseline = 1;
+    const sumSHAP = shapData.reduce((acc, item) => acc + item.value, 0);
+    const rawScore = Math.round(baseline + (sumSHAP * 2));
+    return Math.min(Math.max(rawScore, 0), 6);
+  }, [shapData]);
 
-  // Final score clamped between 0 and 6
-  const rawScore = Math.round(baseline + (sumSHAP * 2));
-  return Math.min(Math.max(rawScore, 0), 6);
-}, [shapData]);
-
-  // 3. MAPPING: Passing state into components
+  // 3. MAPPING: Components
   const COMPONENT_MAP = {
     history: PatientHistory,
     analysis: () => <AnalysisChart data={shapData} />,
     interact: () => <InteractableVariables values={patientData} onChange={setPatientData} />,
-      risk: () => <RiskScore score={riskScore} />, // Add this line
+    risk: () => <RiskScore score={riskScore} />,
   };
 
-  // 4. STATE: Layout and UI
+  // 4. STATE: Layout
   const [containers, setContainers] = useState(() => {
     const saved = localStorage.getItem("clinical-dashboard-layout-v2");
     return saved ? JSON.parse(saved) : [
@@ -86,25 +81,22 @@ const riskScore = useMemo(() => {
   const workspaceRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Persistence
   useEffect(() => {
     localStorage.setItem("clinical-dashboard-layout-v2", JSON.stringify(containers));
   }, [containers]);
 
-  // Scaling Logic
+  // Scaling Engine
   const handleResize = () => {
     if (!workspaceRef.current || !containerRef.current) return;
     const originalTransform = workspaceRef.current.style.transform;
     workspaceRef.current.style.transform = "none";
     const contentHeight = workspaceRef.current.scrollHeight;
     workspaceRef.current.style.transform = originalTransform;
-
-    const paddingBuffer = isSidebarOpen ? 180 : 140;
+    const paddingBuffer = isSidebarOpen ? 200 : 140;
     const availableHeight = containerRef.current.offsetHeight - paddingBuffer;
 
     if (contentHeight > availableHeight) {
-      const newScale = (availableHeight / contentHeight) * 0.95;
-      setScale(Math.max(Math.min(newScale, 1), 0.3));
+      setScale(Math.max(Math.min((availableHeight / contentHeight) * 0.95, 1), 0.3));
     } else {
       setScale(1);
     }
@@ -112,7 +104,7 @@ const riskScore = useMemo(() => {
 
   useLayoutEffect(() => {
     handleResize();
-    const timer = setTimeout(handleResize, 450);
+    const timer = setTimeout(handleResize, 510);
     return () => clearTimeout(timer);
   }, [containers, isSidebarOpen]);
 
@@ -140,7 +132,6 @@ const riskScore = useMemo(() => {
     }
   };
 
-
   const addContainer = () => {
     if (containers.length >= MAX_MODULES) return;
     setContainers([...containers, { id: `c_${Date.now()}`, contentId: null, size: "size-normal" }]);
@@ -167,10 +158,11 @@ const riskScore = useMemo(() => {
   };
 
   return (
-  <div className={`app-layout ${!isSidebarOpen ? "sidebar-closed" : ""}`}>
+    <div className={`app-layout ${!isSidebarOpen ? "sidebar-closed" : ""}`}>
+      {/* Floating Toggle Button */}
       <button className="sidebar-toggle" onClick={toggleSidebar}>
-    {isSidebarOpen ? "›" : "‹"}
-  </button>
+        {isSidebarOpen ? "›" : "‹"}
+      </button>
 
       <main className="dashboard-wrapper" ref={containerRef}>
         <div className="header-area">
@@ -190,7 +182,7 @@ const riskScore = useMemo(() => {
             transform: `scale(${scale})`,
             transformOrigin: "top center",
             width: "100%",
-            transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+            transition: "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
             willChange: "transform"
           }}
         >

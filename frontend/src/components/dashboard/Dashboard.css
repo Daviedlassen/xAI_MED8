@@ -4,125 +4,70 @@
   --transition-speed: 0.5s;
 }
 
+/* 1. LOCK DOWN THE APP */
 .app-layout {
   display: flex;
   flex-direction: row;
   height: 100vh;
   width: 100vw;
   background-color: #f2f2f7;
-  overflow: hidden;
-  /* Add padding-right when sidebar is open to push content */
-  transition: padding-right var(--transition-speed) var(--ios-easing);
-  padding-right: var(--sidebar-width);
+  overflow: hidden; /* Absolute lockdown on scrolling */
+  position: relative;
 }
 
-.app-layout.sidebar-closed {
-  padding-right: 0;
-}
-
+/* 2. DASHBOARD CANVAS */
 .dashboard-wrapper {
   flex: 1;
   padding: 40px 60px;
   display: flex;
   flex-direction: column;
+
+  /* CRITICAL: Force the React script to handle size via scale, NO scrollbars */
   overflow: hidden;
   align-items: center;
-  width: 100%;
+  transition: all var(--transition-speed) var(--ios-easing);
 }
 
-.workspace-scaler {
-  transition: transform var(--transition-speed) var(--ios-easing);
-  will-change: transform;
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Changed from baseline for better symmetry */
-  min-width: 900px;
-}
-
-/* --- THE SIDEBAR FIXES --- */
-
+/* 3. THE SIDEBAR PUSH LOGIC */
 .module-sidebar {
   width: var(--sidebar-width);
   height: 100vh;
   background: white;
   border-left: 1px solid #e5e5ea;
-  position: fixed; /* Changed to fixed to match button */
-  right: 0;
-  top: 0;
+  flex-shrink: 0;
   z-index: 999;
-  transition: transform var(--transition-speed) var(--ios-easing);
-  transform: translateX(0);
+  position: relative;
+  transition: margin-right var(--transition-speed) var(--ios-easing),
+              visibility var(--transition-speed) var(--ios-easing);
+  margin-right: 0;
+  visibility: visible;
 }
 
 .sidebar-closed .module-sidebar {
-  transform: translateX(100%);
+  margin-right: calc(var(--sidebar-width) * -1);
+  visibility: hidden;
 }
 
-.sidebar-content {
-  padding: 30px 20px; /* Internal padding for breathability */
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.sidebar-content h3 {
-  font-size: 18px;
-  margin-bottom: 4px;
-  color: #1c1c1e;
-  padding-left: 10px;
-}
-
-.sidebar-sub {
-  font-size: 12px;
-  color: #8e8e93;
-  margin-bottom: 24px;
-  padding-left: 10px;
-}
-
-.sidebar-item {
-  padding: 16px;
-  background: white;
-  border-radius: 16px;
-  margin: 0 10px 12px 10px; /* Clean margins inside sidebar */
-  cursor: grab;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  transition: 0.2s ease;
-}
-
-.sidebar-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  border-color: rgba(0, 122, 255, 0.2);
-}
-
-/* --- THE TOGGLE BUTTON FIXES --- */
-
+/* 4. THE GLUED TOGGLE */
 .sidebar-toggle {
   position: fixed;
   top: 50%;
   transform: translateY(-50%);
   z-index: 1001;
-
-  /* Calculated exactly to stay on the edge of the sidebar */
   right: var(--sidebar-width);
   transition: right var(--transition-speed) var(--ios-easing);
-
-  width: 30px;
-  height: 60px;
+  width: 32px;
+  height: 64px;
   background: white;
   border: 1px solid #e5e5ea;
   border-right: none;
-  border-radius: 12px 0 0 12px;
+  border-radius: 14px 0 0 14px;
   cursor: pointer;
-  box-shadow: -4px 0 12px rgba(0,0,0,0.05);
+  box-shadow: -4px 0 15px rgba(0,0,0,0.06);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #8e8e93;
-  font-size: 20px;
   outline: none;
 }
 
@@ -130,8 +75,7 @@
   right: 0;
 }
 
-/* --- HEADER & UI --- */
-
+/* 5. HEADER */
 .header-area {
   width: 100%;
   max-width: 1400px;
@@ -140,9 +84,11 @@
   justify-content: space-between;
   margin-bottom: 30px;
   flex-shrink: 0;
+  /* Removed sticky positioning because nothing scrolls anymore */
+  z-index: 10;
 }
 
-.header-area h1 { font-weight: 700; color: #1c1c1e; }
+.header-area h1 { font-weight: 700; color: #1c1c1e; font-size: 28px; }
 .header-area h1 span { color: #007aff; opacity: 0.8; }
 
 .add-container-btn {
@@ -154,22 +100,48 @@
   display: flex; align-items: center; justify-content: center;
 }
 
-.add-container-btn.disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-  filter: grayscale(1);
+/* 6. SIDEBAR CONTENT */
+.sidebar-content {
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-/* --- GRID --- */
+.sidebar-item {
+  padding: 18px;
+  background: white;
+  border-radius: 18px;
+  margin-bottom: 14px;
+  cursor: grab;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: 0.2s ease;
+}
+
+/* 7. SCALER & GRID */
+.workspace-scaler {
+  transition: transform var(--transition-speed) var(--ios-easing);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+
+  /* CRITICAL: Ensures the zoom shrinks perfectly away from the header */
+  transform-origin: top center;
+  will-change: transform;
+}
 
 .ios-grid-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   grid-auto-rows: 160px;
-  gap: 20px;
+  gap: 24px;
   width: 100%;
 }
 
-.grid-item.size-normal { grid-column: span 1; grid-row: span 2; }
+.grid-item.size-normal { grid-column: span 2; grid-row: span 2; }
 .grid-item.size-wide   { grid-column: span 4; grid-row: span 2; }
 .grid-item.size-large  { grid-column: span 3; grid-row: span 3; }

@@ -1,44 +1,35 @@
-.shap-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-}
+/* Keep your existing .shap-container and .shap-list styles */
 
 .variables-container {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px; /* Space between each slider unit */
 }
 
+/* Merged duplicate variable-group classes */
 .variable-group {
   display: flex;
+  flex-direction: column; /* Forces Label above Slider */
+  width: 100%;
+}
+
+.shap-list, .variables-container {
+  flex: 1;
+  display: flex;
   flex-direction: column;
-  gap: 8px;
+  justify-content: center; /* This keeps them centered when the box grows */
+  width: 100%;
+  gap: 1vh; /* Gap scales with screen height */
 }
 
 .var-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  margin-bottom: 6px;
 }
 
-.var-header label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1c1c1e;
-}
-
-.var-value {
-  font-size: 13px;
-  font-weight: 700;
-  color: #007aff;
-  background: rgba(0, 122, 255, 0.1);
-  padding: 2px 8px;
-  border-radius: 6px;
-}
-
-/* iOS Slider Styling */
+/* iOS Slider Styling (Your original plus a size tweak) */
 .ios-slider {
   -webkit-appearance: none;
   width: 100%;
@@ -46,13 +37,13 @@
   background: #e5e5ea;
   border-radius: 5px;
   outline: none;
+  margin: 10px 0;
 }
 
 .ios-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  appearance: none;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   background: white;
   border: 0.5px solid rgba(0,0,0,0.1);
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
@@ -60,184 +51,64 @@
   cursor: pointer;
 }
 
-.var-info-box {
-  margin-top: auto;
-  padding: 12px;
-  background: #f2f2f7;
-  border-radius: 12px;
-  font-size: 11px;
-  color: #8e8e93;
-  line-height: 1.4;
-}
+/* The Circle Meter - Optimized for Resizing */
+.mrs-circle {
+  /* Instead of a fixed height, use a value relative to the container height */
+  /* This says: "Be 50% of the box, but don't exceed 180px" */
+  height: 50%;
+  max-height: 180px;
+  min-height: 60px; /* Prevents it from disappearing in tiny boxes */
+  aspect-ratio: 1 / 1;
 
-.shap-header {
-  margin-bottom: 15px;
-}
-
-.shap-title {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1c1c1e;
-}
-
-.shap-subtitle {
-  font-size: 11px;
-  color: #8e8e93;
-}
-
-.shap-list {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.shap-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-.shap-label {
-  width: 90px;
-  font-size: 12px;
-  color: #3a3a3c;
-  text-align: right;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.shap-bar-wrapper {
-  flex: 1;
-  height: 14px;
-  display: flex;
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 4px;
-  position: relative;
-}
-
-/* Vertical center line */
-.shap-bar-wrapper::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 1px;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.1);
-  z-index: 1;
-}
-
-.shap-axis-half {
-  flex: 1;
-  display: flex;
-  position: relative;
-}
-
-.shap-axis-half:first-child { justify-content: flex-end; } /* Negatives grow left */
-.shap-axis-half:last-child { justify-content: flex-start; } /* Positives grow right */
-
-.shap-bar {
-  height: 100%;
-  border-radius: 2px;
-  z-index: 2;
-  transition: width 0.6s ease-out;
-}
-
-.shap-bar.positive { background: #007aff; } /* Clinical Blue */
-.shap-bar.negative { background: #ff3b30; } /* Alert Red */
-
-.shap-value {
-  width: 40px;
-  font-size: 11px;
-  font-weight: 500;
-  color: #8e8e93;
-}
-
-.shap-footer {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 15px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: #aeaeb2;
-  letter-spacing: 0.5px;
+  justify-content: center;
+  border-radius: 50%;
+  border: 8px solid #eee;
+  flex-shrink: 1; /* Allows the circle to shrink if pushed */
+  transition: all 0.4s ease;
 }
 
 .risk-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  text-align: center;
-  height: 100%;
+  justify-content: center;
+  height: 12%;
+  width: 100%;
+  padding: 10px;
 }
 
-.risk-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1c1c1e;
+/* Scale the circle up if the container is "large" */
+.size-large .mrs-circle {
+  width: 180px;
+  height: 180px;
 }
 
 .mrs-number {
-  font-family: -apple-system, sans-serif;
-  font-size: 11px; /* Bigger than the % text */
+  /* Using 'cqw' or 'cqh' (Container Query Units) is best,
+     but 'vmin' works as a great fallback for responsive scaling */
+  font-size: clamp(1rem, 10vmin, 3rem);
   font-weight: 800;
-  text-anchor: middle;
 }
 
-.risk-status {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  margin-top: 5px;
-  min-height: 14px; /* Prevents layout jump when text changes */
+.mrs-description {
+  margin-top: 10px;
+  text-align: center;
+  flex-shrink: 1; /* Allows text block to shrink if the container is tiny */
 }
 
-.risk-display {
-  width: 120px;
-  margin: 10px 0;
+.mrs-label {
+  font-size: clamp(0.8rem, 2vmin, 1.1rem);
+  font-weight: bold;
+  line-height: 1.2;
 }
 
-.circular-chart {
-  display: block;
-  margin: 0 auto;
-  max-width: 100%;
-  max-height: 250px;
-}
-
-.circle-bg {
-  fill: none;
-  stroke: #e5e5ea;
-  stroke-width: 2.8;
-}
-
-.circle {
-  fill: none;
-  stroke-width: 2.8;
-  stroke-linecap: round;
-  transition: stroke-dasharray 0.5s ease;
-}
-
-.percentage {
-  font-family: -apple-system, sans-serif;
-  font-size: 8px;
-  font-weight: 700;
-  text-anchor: middle;
-}
-
-.risk-status {
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  margin-bottom: 5px;
-}
-
-.risk-meta {
-  font-size: 10px;
-  color: #8e8e93;
-  line-height: 1.3;
-}
+/* Level Colors */
+.mrs-level-0 { border-color: #4caf50; }
+.mrs-level-1 { border-color: #8bc34a; }
+.mrs-level-2 { border-color: #ffeb3b; }
+.mrs-level-3 { border-color: #ffc107; }
+.mrs-level-4 { border-color: #ff9800; }
+.mrs-level-5 { border-color: #f44336; }
+.mrs-level-6 { border-color: #212121; }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useLayoutEffect, useMemo } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect, useMemo, useCallback } from "react";
 import {
   DndContext,
   closestCorners,
@@ -24,7 +24,7 @@ import RiskScore from "../modules/RiskScore";
 
 import "./Dashboard.css";
 
-const MAX_MODULES = 20;
+const MAX_MODULES = 6;
 
 const availableModules = [
   { id: "history", label: "📋 Patient History", defaultSize: "size-wide" },
@@ -34,14 +34,54 @@ const availableModules = [
 ];
 
 const Dashboard = () => {
-  // 1. STATE: Clinical Data
+  // --- 1. STATE: Clinical Data ---
   const [patientData, setPatientData] = useState({
-    nihss: 8,
+    nihss: 5,
     age: 65,
-    glucose: 140,
+    glucose: 110,
+    prestroke_mrs: 0,
+    sys_bp: 140,
+    dis_bp: 90,
+    cholesterol: 200
   });
 
-  // 2. LOGIC: Re-calculate SHAP & mRS Score
+  const [mrsScore, setMrsScore] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  // --- 2. LOGIC: Backend API Integration ---
+  const fetchPrediction = useCallback(async (v) => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/ml/predict_mrs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          age: v.age,
+          nihss_score: v.nihss,
+          prestroke_mrs: v.prestroke_mrs,
+          sys_blood_pressure: v.sys_bp,
+          dis_blood_pressure: v.dis_bp,
+          glucose: v.glucose,
+          cholesterol: v.cholesterol
+        })
+      });
+      const data = await response.json();
+      if (data.status === 'success') {
+        setMrsScore(data.mrs_score);
+      }
+    } catch (err) {
+      console.error("❌ Backend Connection Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => fetchPrediction(patientData), 300);
+    return () => clearTimeout(timer);
+  }, [patientData, fetchPrediction]);
+
+  // --- 3. LOGIC: SHAP (Internal UI logic) ---
   const shapData = useMemo(() => {
     return [
       { name: "NIHSS Score", value: parseFloat((patientData.nihss * 0.05).toFixed(2)) },
@@ -51,28 +91,22 @@ const Dashboard = () => {
     ];
   }, [patientData]);
 
-  const riskScore = useMemo(() => {
-    const baseline = 1;
-    const sumSHAP = shapData.reduce((acc, item) => acc + item.value, 0);
-    const rawScore = Math.round(baseline + (sumSHAP * 2));
-    return Math.min(Math.max(rawScore, 0), 6);
-  }, [shapData]);
-
-  // 3. MAPPING: Components
+  // --- 4. MAPPING: Components ---
   const COMPONENT_MAP = {
-    history: PatientHistory,
-    analysis: () => <AnalysisChart data={shapData} />,
-    interact: () => <InteractableVariables values={patientData} onChange={setPatientData} />,
-    risk: () => <RiskScore score={riskScore} />,
+    history: (props) => <PatientHistory {...props} />,
+    analysis: (props) => <AnalysisChart data={shapData} size={props.size} />,
+    interact: (props) => <InteractableVariables values={patientData} onChange={setPatientData} size={props.size} />,
+    risk: (props) => <RiskScore score={mrsScore} loading={loading} size={props.size} />,
   };
 
-  // 4. STATE: Layout
+  // --- 5. STATE: Layout & Scaling ---
   const [containers, setContainers] = useState(() => {
     const saved = localStorage.getItem("clinical-dashboard-layout-v2");
     return saved ? JSON.parse(saved) : [
       { id: "cont_1", contentId: "history", size: "size-wide" },
       { id: "cont_2", contentId: "analysis", size: "size-large" },
       { id: "cont_3", contentId: "interact", size: "size-normal" },
+      { id: "cont_4", contentId: "risk", size: "size-normal" },
     ];
   });
 
@@ -85,7 +119,7 @@ const Dashboard = () => {
     localStorage.setItem("clinical-dashboard-layout-v2", JSON.stringify(containers));
   }, [containers]);
 
-  // Scaling Engine
+  // Restored: Auto-Scaling Logic
   const handleResize = () => {
     if (!workspaceRef.current || !containerRef.current) return;
     const originalTransform = workspaceRef.current.style.transform;
@@ -113,7 +147,6 @@ const Dashboard = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Handlers
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -146,20 +179,10 @@ const Dashboard = () => {
     ));
   };
 
-  const cycleSize = (id) => {
-    const sizes = ["size-normal", "size-wide", "size-large"];
-    setContainers(containers.map(c => {
-      if (c.id === id) {
-        const nextIndex = (sizes.indexOf(c.size) + 1) % sizes.length;
-        return { ...c, size: sizes[nextIndex] };
-      }
-      return c;
-    }));
-  };
+  // Note: cycleSize function is permanently removed! Modules autosize via their defaultSize on drop.
 
   return (
     <div className={`app-layout ${!isSidebarOpen ? "sidebar-closed" : ""}`}>
-      {/* Floating Toggle Button */}
       <button className="sidebar-toggle" onClick={toggleSidebar}>
         {isSidebarOpen ? "›" : "‹"}
       </button>
@@ -196,10 +219,11 @@ const Dashboard = () => {
                       id={c.id}
                       contentId={c.contentId}
                       size={c.size}
+                      renderContent={() => COMPONENT_MAP[c.contentId]({ size: c.size })}
                       componentMap={COMPONENT_MAP}
                       onRemove={() => removeContainer(c.id)}
-                      onCycleSize={() => cycleSize(c.id)}
                       onDropModule={(mId) => handleModuleDrop(c.id, mId)}
+                      /* REMOVED: onCycleSize */
                     />
                   ))}
                 </AnimatePresence>

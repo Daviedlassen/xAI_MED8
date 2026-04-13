@@ -1,72 +1,68 @@
-import pandas as pd
-import io
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional
+import joblib
+import pandas as pd
 
-router = APIRouter(
-    prefix="/ml",
-    tags=["Machine Learning"]
-)
+router = APIRouter(prefix="/api/ml", tags=["Machine Learning"])
 
-class PatientState(BaseModel):
-    # Required fields (sent by React)
+# LOAD MODEL
+MODEL_PATH = r"C:\Users\Bruger\PycharmProjects\P8Project\backend\model\XGboostOrdinal_20260406_112345.pkl"
+try:
+    ml_model = joblib.load(MODEL_PATH)
+    print("✅ Model Loaded")
+except Exception as e:
+    print(f"❌ Load Error: {e}")
+    ml_model = None
+
+
+class PatientData(BaseModel):
+    age: float
+    nihss_score: float
+    prestroke_mrs: int
     sys_blood_pressure: float
     dis_blood_pressure: float
     glucose: float
     cholesterol: float
-    nihss_score: float
-    door_to_needle: float
-    risk_smoker: bool
-    risk_diabetes: bool
-
-    # Optional fields (Defaults provided to prevent 422 error)
-    age: float = 65.0
-    discharge_nihss_score: float = 0.0
-    prestroke_mrs: float = 0.0
-    tici_score: float = 3.0
-    perfusion_core: float = 0.0
-    hypoperfusion_core: float = 0.0
-    risk_hypertension: bool = False
-    risk_hyperlipidemia: bool = False
-    risk_congestive_heart_failure: bool = False
-    risk_coronary_artery_disease_or_myocardial_infarction: bool = False
-    risk_hiv: bool = False
-    risk_previous_hemorrhagic_stroke: bool = False
-    risk_previous_ischemic_stroke: bool = False
-    covid_test: bool = False
-    hospital_stroke: bool = False
-    imaging_done: bool = True
-    door_to_imaging: float = 20.0
-    onset_to_door: float = 60.0
-    prenotification: bool = False
-    physiotherapy_start_within_3days: bool = True
-    occup_physiotherapy_received: bool = True
 
 
-@router.post("/predict")
-async def predict_outcome(data: PatientState):
-    base_mrs = 3.0
+@router.post("/predict_mrs")
+async def predict_mrs(data: PatientData):
+    # This print will prove the connection works
+    print(f"🔥 INCOMING: Age={data.age}, NIHSS={data.nihss_score}")
 
-    # Calculate impacts
-    impact_bp = (data.sys_blood_pressure - 120) * 0.05
-    impact_timing = (data.door_to_needle - 60) * 0.02
-    impact_nihss = (data.nihss_score - 10) * 0.1
-    impact_chol = (data.cholesterol - 3.5) * 0.1
+    if not ml_model:
+        raise HTTPException(status_code=500, detail="Model missing")
 
-    raw_score = base_mrs + impact_bp + impact_timing + impact_nihss + impact_chol
+    try:
+        # Full feature list in the exact order your XGBoost expects
+        payload = {
+            "age": data.age, "before_onset_antidiabetics": 0, "before_onset_cilostazol": 0,
+            "before_onset_clopidrogel": 0, "before_onset_dipyridamol": 0, "before_onset_prasugrel": 0,
+            "before_onset_ticagrelor": 0, "before_onset_ticlopidine": 0, "before_onset_warfarin": 0,
+            "cholesterol": data.cholesterol, "covid_test": 0, "dis_blood_pressure": data.dis_blood_pressure,
+            "discharge_antidiabetics": 0, "discharge_apixaban": 0, "discharge_cilostazol": 0,
+            "discharge_clopidrogel": 0, "discharge_dabigatran": 0, "discharge_dipyridamol": 0,
+            "discharge_edoxaban": 0, "discharge_heparin": 0, "discharge_nihss_score": 0.0,
+            "discharge_prasugrel": 0, "discharge_rivaroxaban": 0, "discharge_ticagrelor": 0,
+            "discharge_ticlopidine": 0, "discharge_warfarin": 0, "door_to_imaging": 0.0,
+            "door_to_needle": 0.0, "glucose": data.glucose, "hospital_stroke": 0,
+            "hypoperfusion_core": 0.0, "imaging_done": 1, "nihss_score": data.nihss_score,
+            "occup_physiotherapy_received": 0, "onset_to_door": 0.0, "perfusion_core": 0.0,
+            "physiotherapy_start_within_3days": 0, "prenotification": 0, "prestroke_mrs": data.prestroke_mrs,
+            "risk_congestive_heart_failure": 0, "risk_coronary_artery_disease_or_myocardial_infarction": 0,
+            "risk_diabetes": 0, "risk_hiv": 0, "risk_hyperlipidemia": 0, "risk_hypertension": 0,
+            "risk_previous_hemorrhagic_stroke": 0, "risk_previous_ischemic_stroke": 0,
+            "risk_smoker": 0, "sys_blood_pressure": data.sys_blood_pressure, "tici_score": 0.0
+        }
 
-    if data.risk_smoker: raw_score += 0.4
-    if data.risk_diabetes: raw_score += 0.5
+        df = pd.DataFrame([payload])
 
-    final_score = max(0, min(6, raw_score))
+        if isinstance(ml_model, dict):
+            res = sum(int(ml_model[i].predict(df)[0]) for i in range(len(ml_model)))
+        else:
+            res = int(ml_model.predict(df)[0])
 
-    return {
-        "recoveryScore": round(final_score, 1),
-        "impacts": [
-            {"feature": "Blood Pressure", "value": round(impact_bp, 2)},
-            {"feature": "Treatment Window", "value": round(impact_timing, 2)},
-            {"feature": "NIHSS Severity", "value": round(impact_nihss, 2)},
-            {"feature": "Cholesterol", "value": round(impact_chol, 2)}
-        ]
-    }
+        return {"status": "success", "mrs_score": res}
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"status": "error", "message": str(e)}

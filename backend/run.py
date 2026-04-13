@@ -5,6 +5,7 @@ import platform
 import time
 
 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 def check_node_installed():
     """Checks if Node.js/npm is installed on the user's machine."""
     npm_cmd = "npm.cmd" if platform.system() == "Windows" else "npm"
@@ -22,6 +23,7 @@ def check_node_installed():
 def main():
     print("🚀 Starting xAI MED8...")
 
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     # --- PATH LOGIC ---
     # Gets directory of run.py (C:/.../P8Project/backend)
     current_script_dir = os.path.dirname(os.path.abspath(__file__))

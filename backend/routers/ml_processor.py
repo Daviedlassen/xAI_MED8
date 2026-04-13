@@ -1,19 +1,31 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+import os
 import joblib
 import pandas as pd
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/ml", tags=["Machine Learning"])
 
+# --- DYNAMIC PATH LOGIC ---
+# 1. Get the directory where THIS file (ml_processor.py) lives
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 2. Build the path to the model file relative to this script
+# Assuming your structure is: backend/routers/ml_processor.py and backend/model/model.pkl
+# We go up one level to 'backend', then into 'model'
+MODEL_PATH = os.path.join(os.path.dirname(BASE_DIR), "model", "XGboostOrdinal_20260406_112345.pkl")
+
 # LOAD MODEL
-MODEL_PATH = r"C:\Users\Bruger\PycharmProjects\P8Project\backend\model\XGboostOrdinal_20260406_112345.pkl"
 try:
-    ml_model = joblib.load(MODEL_PATH)
-    print("✅ Model Loaded")
+    if os.path.exists(MODEL_PATH):
+        ml_model = joblib.load(MODEL_PATH)
+        print(f"✅ Model Loaded from: {MODEL_PATH}")
+    else:
+        print(f"❌ Model file NOT found at: {MODEL_PATH}")
+        ml_model = None
 except Exception as e:
     print(f"❌ Load Error: {e}")
     ml_model = None
-
 
 class PatientData(BaseModel):
     age: float
@@ -24,17 +36,15 @@ class PatientData(BaseModel):
     glucose: float
     cholesterol: float
 
-
 @router.post("/predict_mrs")
 async def predict_mrs(data: PatientData):
-    # This print will prove the connection works
-    print(f"🔥 INCOMING: Age={data.age}, NIHSS={data.nihss_score}")
+    print(f"🔥 INCOMING PREDICTION: Age={data.age}, NIHSS={data.nihss_score}")
 
     if not ml_model:
-        raise HTTPException(status_code=500, detail="Model missing")
+        raise HTTPException(status_code=500, detail="Machine Learning model is not loaded on the server.")
 
     try:
-        # Full feature list in the exact order your XGBoost expects
+        # Full feature list
         payload = {
             "age": data.age, "before_onset_antidiabetics": 0, "before_onset_cilostazol": 0,
             "before_onset_clopidrogel": 0, "before_onset_dipyridamol": 0, "before_onset_prasugrel": 0,
@@ -57,6 +67,7 @@ async def predict_mrs(data: PatientData):
 
         df = pd.DataFrame([payload])
 
+        # Handle both single models and ensembles (dict)
         if isinstance(ml_model, dict):
             res = sum(int(ml_model[i].predict(df)[0]) for i in range(len(ml_model)))
         else:
@@ -64,5 +75,5 @@ async def predict_mrs(data: PatientData):
 
         return {"status": "success", "mrs_score": res}
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"❌ Prediction Error: {e}")
         return {"status": "error", "message": str(e)}

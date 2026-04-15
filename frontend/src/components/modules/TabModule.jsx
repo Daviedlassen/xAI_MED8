@@ -1,4 +1,4 @@
-/*V1*/
+
 import React from "react";
 
 const TabModule = ({ activeCategory, onCategoryChange }) => {

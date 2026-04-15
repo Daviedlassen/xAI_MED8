@@ -67,7 +67,7 @@ def main():
             shell=(platform.system() == "Windows")
         )
 
-        print("\n✨ ALL SYSTEMS GO!")
+        print("\n Operating...")
         backend_proc.wait()
         frontend_proc.wait()
 

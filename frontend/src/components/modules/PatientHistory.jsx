@@ -5,9 +5,18 @@ const PatientHistory = () => {
     { label: "Patient ID", value: "#171223" },
     { label: "Age", value: "63" },
     { label: "Gender", value: "Male" },
-    { label: "Chronic diseases", value: "Diabetes, Hypertension" },
-    { label: "Medicin before onset", value: "Clopidogrel" },
-    { label: "NIHSS", value: "18" },
+      { label: "Covid positive", value: "Yes" },
+      { label: "Chronic diseases", value: "Diabetes Hyperlipidemia Hypertension" },
+      { label: "Medicine before onset", value: "Clopidogrel" },
+      { label: "Stroke mimics", value: "Yes" },
+      { label: "In-hopistal stroke", value: "No" },
+      { label: "Source of bleeding found", value: "Yes" },
+      { label: "Previous IS/TIA", value: "Yes" },
+      { label: "Previous ICH", value: "Yes" },
+      { label: "NIHSS", value: "18" },
+      { label: "TICI score", value: "Grade 3" },
+      { label: "mRS 2-5", value: "Yes" },
+
   ];
 
   return (

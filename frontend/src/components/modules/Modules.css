@@ -1,35 +1,17 @@
-/* Keep your existing .shap-container and .shap-list styles */
-
+/* --- VARIABLES & SLIDER STYLING --- */
 .variables-container {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 18px; /* Space between each slider unit */
+  gap: 18px;
 }
 
-/* Merged duplicate variable-group classes */
 .variable-group {
   display: flex;
-  flex-direction: column; /* Forces Label above Slider */
-  width: 100%;
-}
-
-.shap-list, .variables-container {
-  flex: 1;
-  display: flex;
   flex-direction: column;
-  justify-content: center; /* This keeps them centered when the box grows */
   width: 100%;
-  gap: 1vh; /* Gap scales with screen height */
 }
 
-.var-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-/* iOS Slider Styling (Your original plus a size tweak) */
 .ios-slider {
   -webkit-appearance: none;
   width: 100%;
@@ -51,64 +33,148 @@
   cursor: pointer;
 }
 
-/* The Circle Meter - Optimized for Resizing */
-.mrs-circle {
-  /* Instead of a fixed height, use a value relative to the container height */
-  /* This says: "Be 50% of the box, but don't exceed 180px" */
-  height: 50%;
-  max-height: 180px;
-  min-height: 60px; /* Prevents it from disappearing in tiny boxes */
-  aspect-ratio: 1 / 1;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 200%;
-  border: 8px solid #eee;
-  flex-shrink: 1; /* Allows the circle to shrink if pushed */
-  transition: all 0.4s ease;
-}
-
+/* --- RISK SCORE MODULE (DONUT GAUGE) --- */
+/* --- RISK SCORE MODULE (DONUT GAUGE) --- */
 .risk-container {
   display: flex;
-  flex-direction: column;
+  align-items: center;      /* Vertical Center */
+  justify-content: center;   /* Horizontal Center */
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  /* Add this to prevent any internal bleed */
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.mrs-circle {
+  /* 1. Define the variable with a default to stop the "redline" error */
+  --progress: 0%;
+
+  position: relative;
+  width: 80%;
+  max-width: 220px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+
+  /* 2. Use the variable with a fallback value: var(--name, fallback) */
+  background: conic-gradient(
+    var(--ring-color, #34c759) 0% var(--progress, 0%),
+    #e5e5ea var(--progress, 0%) 100%
+  );
+
+  display: flex;
   align-items: center;
   justify-content: center;
-  height: 12%;
-  width: 100%;
-  padding: 10px;
+  flex-shrink: 0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Scale the circle up if the container is "large" */
-.size-large .mrs-circle {
-  width: 180px;
-  height: 180px;
+.mrs-circle::before {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  background: white;
+  border-radius: 50%;
+  z-index: 0;
 }
 
-.mrs-number {
-  /* Using 'cqw' or 'cqh' (Container Query Units) is best,
-     but 'vmin' works as a great fallback for responsive scaling */
-  font-size: clamp(1rem, 10vmin, 3rem);
-  font-weight: 800;
+.mrs-circle::before {
+  content: "";
+  position: absolute;
+  /* Using a percentage for inset makes it scale better */
+  inset: 10%;
+  background: white;
+  border-radius: 50%;
+  z-index: 0;
 }
 
-.mrs-description {
-  margin-top: 10px;
-  text-align: center;
-  flex-shrink: 1; /* Allows text block to shrink if the container is tiny */
+/* Force Hide Extra Descriptions */
+.mrs-description, .mrs-label, .mrs-subtext, .mrs-outcome-text {
+  display: none !important;
 }
 
-.mrs-label {
-  font-size: clamp(0.8rem, 2vmin, 1.1rem);
-  font-weight: bold;
-  line-height: 1.2;
+/* Level Colors (Ring Colors) */
+.mrs-level-0 { --ring-color: #34c759; }
+.mrs-level-1 { --ring-color: #8bc34a; }
+.mrs-level-2 { --ring-color: #ffd60a; }
+.mrs-level-3 { --ring-color: #ff9f0a; }
+.mrs-level-4 { --ring-color: #ff3b30; }
+.mrs-level-5 { --ring-color: #8e8e93; }
+.mrs-level-6 { --ring-color: #1c1c1e; }
+
+.variable-tabs-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 5px;
 }
 
-/* Level Colors */
-.mrs-level-0 { border-color: #4caf50; }
-.mrs-level-1 { border-color: #8bc34a; }
-.mrs-level-2 { border-color: #ffeb3b; }
-.mrs-level-3 { border-color: #ffc107; }
-.mrs-level-4 { border-color: #ff9800; }
-.mrs-level-5 { border-color: #f44336; }
-.mrs-level-6 { border-color: #212121; }
+.v-tab {
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid #e5e5ea;
+  background: white;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1c1c1e;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.v-tab:hover {
+  background: #f2f2f7;
+}
+
+.v-tab.active {
+  background: #e5e5ea; /* Matches your gray active state in image */
+  border-color: #d1d1d6;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Update these in Modules.css */
+
+.clinical-vars-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden; /* Container doesn't scroll, child does */
+}
+
+.vars-sticky-header {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #f2f2f7;
+  margin-bottom: 15px;
+}
+
+.vars-scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 5px; /* Space for scrollbar */
+}
+
+.not-actionable {
+  opacity: 0.5;
+  font-weight: 400;
+}
+
+/* Ensure horizontal tab scrolling works on small cards */
+.variable-tabs-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Hide scrollbar Firefox */
+}
+
+.variable-tabs-row::-webkit-scrollbar {
+  display: none; /* Hide scrollbar Chrome/Safari */
+}
+

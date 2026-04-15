@@ -2,26 +2,19 @@ import React from 'react';
 import './Modules.css';
 
 const RiskScore = ({ score, loading }) => {
-  return (
-    <div className="module-card score-panel">
-      <div className="module-header">
-        <h3>Predicted 90-day mRS</h3>
-      </div>
-      <div className="module-body risk-score-body">
-        <div className={`mrs-circle mrs-level-${score}`}>
-          <span className="mrs-number">{loading ? "..." : score}</span>
-        </div>
+  // Ensure the math results in a clean percentage string
+  const fillPercentage = loading ? "0%" : `${Math.max(0, 100 - (score * 16.6))}%`;
 
-        <div className="mrs-description">
-          <p className="mrs-outcome-text">
-            {score <= 1 ? "Favorable Outcome" :
-             score >= 5 ? "Severe Disability / Death" :
-             "Moderate Disability"}
-          </p>
-          <p className="mrs-subtext">
-            Based on current clinical variables
-          </p>
-        </div>
+  return (
+    <div className="risk-container">
+      <div
+        className={`mrs-circle mrs-level-${score}`}
+        style={{
+          // Use the exact variable name defined in CSS
+          "--progress": fillPercentage
+        }}
+      >
+        <span className="mrs-number">{loading ? "..." : score}</span>
       </div>
     </div>
   );

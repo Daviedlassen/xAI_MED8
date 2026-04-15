@@ -1,14 +1,13 @@
 .glass-card {
-  background: white; /* Clean medical white */
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 24px;
-  height: 100%;
+  background: white;
+  border-radius: 28px;
+  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
-  position: relative;
-  overflow: hidden;
+  overflow: hidden; /* This keeps the "corners" clean */
+  height: 100%;
+  min-width: 0; /* Add this */
 }
 
 .glass-card.is-over {
@@ -69,11 +68,14 @@
 
 .glass-inner {
   flex: 1;
-  padding: 24px; /* Increased padding for medical UI look */
-  overflow: visible; /* Changed from hidden to avoid clipping charts */
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  width: 100%; /* Ensure it fills the card */
+  align-items: center; /* Add this to force center children */
+  justify-content: center; /* Add this */
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden; /* Prevent the circle from "poking out" */
 }
 
 .striped-drop-zone {

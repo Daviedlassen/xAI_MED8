@@ -92,14 +92,14 @@
 /* 2. DASHBOARD CANVAS */
 .dashboard-wrapper {
   flex: 1;
-  padding: 20px; /* Reduced for more screen real estate */
+  padding: 20px 0;
   display: flex;
   flex-direction: column;
+  /* CHANGE: Force content to start at the top-left, not center */
+  align-items: flex-start;
+  justify-content: flex-start;
   overflow-y: auto;
   overflow-x: hidden;
-  /* CRITICAL: This was 'center', which caused the margins on left/right */
-  align-items: stretch;
-  transition: all var(--transition-speed) var(--ios-easing);
   width: 100%;
 }
 
@@ -155,13 +155,8 @@
 /* 5. HEADER */
 .header-area {
   width: 100%;
-  max-width: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  padding: 0 10px;
-  z-index: 10;
+  padding: 0 30px; /* Keep padding here so text isn't touching the wall */
+  box-sizing: border-box;
 }
 
 .header-area h1 { font-weight: 700; color: #1c1c1e; font-size: 28px; }
@@ -201,20 +196,21 @@
 
 /* 7. SCALER & GRID */
 .workspace-scaler {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch; /* Ensure children take up full width */
+  /* CHANGE: Ensure it acts as a container for the grid */
+  display: block;
   width: 100%;
-  transform-origin: top center;
+  transform-origin: top left;
+  transition: transform 0.5s var(--ios-easing);
+  will-change: transform;
 }
 
 .ios-grid-container {
   display: grid;
-  /* Using 6 columns instead of 4 allows for more granular "Full Width" spans */
   grid-template-columns: repeat(6, 1fr);
-  gap: 20px;
+  gap: 10px;
   width: 100%;
-  max-width: none;
+  padding: 0 40px; /* Aligns grid items away from screen edges */
+  box-sizing: border-box; /* Ensures padding doesn't break width */
 }
 
 /* 8. LOCK LOGIC (Hiding Clutter in Workspace) */
@@ -245,15 +241,14 @@
 }
 
 .grid-item.size-normal {
-  grid-column: span 4;
-    grid-row: span 0;
+  grid-column: span 5;
 }
 .grid-item.risk-score {
   grid-column: span 2;
+  min-height: 300px;
 }
 .grid-item.size-wide {
   grid-column: span 3;
-  grid-row: span 1;
 }
 
 /* 10. SIDEBAR TABS & CONTENT */

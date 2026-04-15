@@ -4,8 +4,26 @@ import { CSS } from "@dnd-kit/utilities";
 import { motion } from "motion/react";
 import GlassCard from "./GlassCard";
 
-const SortableModule = ({ id, contentId, size, componentMap, onRemove, onCycleSize, onDropModule }) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+const SortableModule = ({
+  id,
+  contentId,
+  size,
+  isLocked,      // Added this
+  renderContent, // Added this
+  onRemove,
+  onDropModule
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({
+    id,
+    disabled: isLocked // Disables dnd-kit logic when locked
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -18,16 +36,21 @@ const SortableModule = ({ id, contentId, size, componentMap, onRemove, onCycleSi
       <motion.div
         layout
         transition={{ type: "spring", stiffness: 400, damping: 40 }}
-        animate={{ scale: isDragging ? 1.02 : 1, opacity: isDragging ? 0.6 : 1 }}
+        animate={{
+          scale: isDragging ? 1.02 : 1,
+          opacity: isDragging ? 0.6 : 1
+        }}
         style={{ height: "100%" }}
       >
         <GlassCard
           contentId={contentId}
-          componentMap={componentMap}
+          isLocked={isLocked}
           onRemove={onRemove}
-          onCycleSize={onCycleSize}
           onDropModule={onDropModule}
-          dragProps={{ ...attributes, ...listeners }}
+          // Only pass drag listeners if NOT locked
+          dragProps={!isLocked ? { ...attributes, ...listeners } : {}}
+          // Pass the pre-rendered component from Dashboard
+          renderContent={renderContent}
         />
       </motion.div>
     </div>

@@ -1,38 +1,57 @@
 import React, { useState } from "react";
 import "./GlassCard.css";
 
-const GlassCard = ({ contentId, onRemove, onCycleSize, dragProps, onDropModule, componentMap }) => {
+const GlassCard = ({
+  contentId,
+  onRemove,
+  dragProps,
+  onDropModule,
+  renderContent, // Recieved from SortableModule
+  isLocked       // New: used to hide UI elements
+}) => {
   const [isOver, setIsOver] = useState(false);
-  const ActiveComponent = componentMap[contentId];
 
   return (
     <div
-      className={`glass-card ${isOver ? "is-over" : ""}`}
-      onDragOver={(e) => { e.preventDefault(); setIsOver(true); }}
+      className={`glass-card ${isOver ? "is-over" : ""} ${isLocked ? "is-locked" : ""}`}
+      onDragOver={(e) => {
+        if (isLocked) return; // Prevent drop if locked
+        e.preventDefault();
+        setIsOver(true);
+      }}
       onDragLeave={() => setIsOver(false)}
       onDrop={(e) => {
-        e.preventDefault(); setIsOver(false);
+        if (isLocked) return;
+        e.preventDefault();
+        setIsOver(false);
         const mid = e.dataTransfer.getData("moduleId");
         if (mid) onDropModule(mid);
       }}
     >
-      <div className="glass-header">
-        <button className="glass-size-btn" onClick={onCycleSize} title="Change Size">⤢</button>
-        <div className="drag-handle" {...dragProps}>
-          <div className="pill"></div>
-        </div>
-        <button className="glass-close-btn" onClick={onRemove}>×</button>
-      </div>
-      <div className="glass-inner">
-        {ActiveComponent ? (
-          <ActiveComponent />
-        ) : (
-          <div className="striped-drop-zone">
-            <div className="drop-content">
-              <div className="drop-plus">+</div>
-              <span>Drop clinical tool here</span>
-            </div>
+      {/* 1. Header: Only show if NOT locked */}
+      {!isLocked && (
+        <div className="glass-header">
+          <div className="drag-handle" {...dragProps}>
+            <div className="pill"></div>
           </div>
+          <button className="glass-close-btn" onClick={onRemove}>×</button>
+        </div>
+      )}
+
+      {/* 2. Body: Renders the pre-built component from Dashboard */}
+      <div className="glass-inner">
+        {contentId ? (
+          renderContent()
+        ) : (
+          /* Only show the drop zone if NOT locked and empty */
+          !isLocked && (
+            <div className="striped-drop-zone">
+              <div className="drop-content">
+                <div className="drop-plus">+</div>
+                <span>Drop clinical tool here</span>
+              </div>
+            </div>
+          )
         )}
       </div>
     </div>

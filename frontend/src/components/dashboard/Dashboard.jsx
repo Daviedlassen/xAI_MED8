@@ -27,14 +27,14 @@ import "./Dashboard.css";
 const MAX_MODULES = 6;
 
 const availableModules = [
-  { id: "history", label: "📋 Patient History", defaultSize: "size-wide" },
-  { id: "analysis", label: "📊 SHAP Analysis", defaultSize: "size-large" },
-  { id: "interact", label: "🎛️ Variables", defaultSize: "size-normal" },
-  { id: "risk", label: "🎯 Risk Score", defaultSize: "size-normal" },
+  { id: "history", label: "📋 Patient History", defaultSize: "size-normal" },
+  { id: "analysis", label: "📊 SHAP Analysis", defaultSize: "size-wide" },
+  { id: "interact", label: "🎛️ Variables", defaultSize: "size-wide" },
+  { id: "risk", label: "🎯 Risk Score", defaultSize: "size-risk-score" },
 ];
 
 const Dashboard = () => {
-  // --- 1. STATE: Clinical Data ---
+  // --- 1. STATE: Clinical & UI Mode ---
   const [patientData, setPatientData] = useState({
     nihss: 5,
     age: 65,
@@ -45,10 +45,18 @@ const Dashboard = () => {
     cholesterol: 200
   });
 
+  const [isLocked, setIsLocked] = useState(false);
   const [mrsScore, setMrsScore] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // --- 2. LOGIC: Backend API Integration ---
+  // --- 2. STATE: Sidebar & Presets ---
+  const [activeTab, setActiveTab] = useState("modules"); // 'modules' or 'presets'
+  const [presets, setPresets] = useState(() => {
+    const saved = localStorage.getItem("clinical-dashboard-presets");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // --- 3. LOGIC: Backend API Integration ---
   const fetchPrediction = useCallback(async (v) => {
     setLoading(true);
     try {
@@ -81,7 +89,7 @@ const Dashboard = () => {
     return () => clearTimeout(timer);
   }, [patientData, fetchPrediction]);
 
-  // --- 3. LOGIC: SHAP (Internal UI logic) ---
+  // --- 4. LOGIC: SHAP Data ---
   const shapData = useMemo(() => {
     return [
       { name: "NIHSS Score", value: parseFloat((patientData.nihss * 0.05).toFixed(2)) },
@@ -91,7 +99,7 @@ const Dashboard = () => {
     ];
   }, [patientData]);
 
-  // --- 4. MAPPING: Components ---
+  // --- 5. MAPPING: Components ---
   const COMPONENT_MAP = {
     history: (props) => <PatientHistory {...props} />,
     analysis: (props) => <AnalysisChart data={shapData} size={props.size} />,
@@ -99,7 +107,7 @@ const Dashboard = () => {
     risk: (props) => <RiskScore score={mrsScore} loading={loading} size={props.size} />,
   };
 
-  // --- 5. STATE: Layout & Scaling ---
+  // --- 6. STATE: Layout ---
   const [containers, setContainers] = useState(() => {
     const saved = localStorage.getItem("clinical-dashboard-layout-v2");
     return saved ? JSON.parse(saved) : [
@@ -115,18 +123,41 @@ const Dashboard = () => {
   const workspaceRef = useRef(null);
   const containerRef = useRef(null);
 
+  // Save Layout & Presets
   useEffect(() => {
     localStorage.setItem("clinical-dashboard-layout-v2", JSON.stringify(containers));
   }, [containers]);
 
-  // Restored: Auto-Scaling Logic
-  const handleResize = () => {
+  useEffect(() => {
+    localStorage.setItem("clinical-dashboard-presets", JSON.stringify(presets));
+  }, [presets]);
+
+  // --- 7. LOGIC: Presets ---
+  const handleSavePreset = () => {
+    const name = prompt("Enter a name for this layout preset (e.g., 'ICU Default'):");
+    if (name) {
+      setPresets([...presets, { id: Date.now(), name, layout: [...containers] }]);
+    }
+  };
+
+  const handleLoadPreset = (layout) => {
+    setContainers(layout);
+  };
+
+  const handleDeletePreset = (id) => {
+    setPresets(presets.filter(p => p.id !== id));
+  };
+
+  // --- 8. LOGIC: Auto-Scaling ---
+  const handleResize = useCallback(() => {
     if (!workspaceRef.current || !containerRef.current) return;
     const originalTransform = workspaceRef.current.style.transform;
     workspaceRef.current.style.transform = "none";
     const contentHeight = workspaceRef.current.scrollHeight;
     workspaceRef.current.style.transform = originalTransform;
-    const paddingBuffer = isSidebarOpen ? 200 : 140;
+
+    // Buffer based strictly on sidebar open state, regardless of lock
+    const paddingBuffer = isSidebarOpen ? 200 : 100;
     const availableHeight = containerRef.current.offsetHeight - paddingBuffer;
 
     if (contentHeight > availableHeight) {
@@ -134,27 +165,27 @@ const Dashboard = () => {
     } else {
       setScale(1);
     }
-  };
+  }, [isSidebarOpen]);
 
   useLayoutEffect(() => {
     handleResize();
     const timer = setTimeout(handleResize, 510);
     return () => clearTimeout(timer);
-  }, [containers, isSidebarOpen]);
+  }, [containers, isSidebarOpen, handleResize]);
 
   useEffect(() => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [handleResize]);
 
+  // --- 9. LOGIC: Interactions ---
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
-
   const handleDragEnd = (event) => {
+    if (isLocked) return;
     const { active, over } = event;
     if (over && active.id !== over.id) {
       setContainers((items) => {
@@ -166,36 +197,51 @@ const Dashboard = () => {
   };
 
   const addContainer = () => {
-    if (containers.length >= MAX_MODULES) return;
+    if (containers.length >= MAX_MODULES || isLocked) return;
     setContainers([...containers, { id: `c_${Date.now()}`, contentId: null, size: "size-normal" }]);
   };
 
-  const removeContainer = (id) => setContainers(containers.filter((c) => c.id !== id));
+  const removeContainer = (id) => {
+    if (isLocked) return;
+    setContainers(containers.filter((c) => c.id !== id));
+  };
 
   const handleModuleDrop = (cId, mId) => {
+    if (isLocked) return;
     const modDef = availableModules.find(m => m.id === mId);
     setContainers(containers.map((c) =>
       (c.id === cId ? { ...c, contentId: mId, size: modDef?.defaultSize || "size-normal" } : c)
     ));
   };
 
-  // Note: cycleSize function is permanently removed! Modules autosize via their defaultSize on drop.
-
   return (
-    <div className={`app-layout ${!isSidebarOpen ? "sidebar-closed" : ""}`}>
-      <button className="sidebar-toggle" onClick={toggleSidebar}>
+    <div className={`app-layout ${!isSidebarOpen ? "sidebar-closed" : ""} ${isLocked ? "is-locked" : ""}`}>
+
+      {/* Sidebar Toggle: Always visible now */}
+      <button className="sidebar-toggle" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
         {isSidebarOpen ? "›" : "‹"}
       </button>
 
       <main className="dashboard-wrapper" ref={containerRef}>
         <div className="header-area">
-          <h1>xAI <span>MED8</span></h1>
-          <button
-            className={`add-container-btn ${containers.length >= MAX_MODULES ? 'disabled' : ''}`}
-            onClick={addContainer}
-          >
-            +
-          </button>
+          <div className="header-left" style={{ display: 'flex', alignItems: 'center' }}>
+            <h1>xAI <span>MED8</span></h1>
+            <button
+              className={`lock-toggle-btn ${isLocked ? 'active' : ''}`}
+              onClick={() => setIsLocked(!isLocked)}
+            >
+              {isLocked ? "🔓 Unlock Layout" : "🔒 Lock Dashboard"}
+            </button>
+          </div>
+
+          {!isLocked && (
+            <button
+              className={`add-container-btn ${containers.length >= MAX_MODULES ? 'disabled' : ''}`}
+              onClick={addContainer}
+            >
+              +
+            </button>
+          )}
         </div>
 
         <div
@@ -217,13 +263,12 @@ const Dashboard = () => {
                     <SortableModule
                       key={c.id}
                       id={c.id}
+                      isLocked={isLocked}
                       contentId={c.contentId}
                       size={c.size}
-                      renderContent={() => COMPONENT_MAP[c.contentId]({ size: c.size })}
-                      componentMap={COMPONENT_MAP}
+                      renderContent={() => COMPONENT_MAP[c.contentId] ? COMPONENT_MAP[c.contentId]({ size: c.size }) : null}
                       onRemove={() => removeContainer(c.id)}
                       onDropModule={(mId) => handleModuleDrop(c.id, mId)}
-                      /* REMOVED: onCycleSize */
                     />
                   ))}
                 </AnimatePresence>
@@ -234,21 +279,81 @@ const Dashboard = () => {
       </main>
 
       <aside className="module-sidebar">
+        <div className="sidebar-tabs">
+          <button
+            className={`tab-btn ${activeTab === 'modules' ? 'active' : ''}`}
+            onClick={() => setActiveTab('modules')}
+          >
+            Modules
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'presets' ? 'active' : ''}`}
+            onClick={() => setActiveTab('presets')}
+          >
+            Presets
+          </button>
+        </div>
+
         <div className="sidebar-content">
-          <h3>Tool Library</h3>
-          <p className="sidebar-sub">Drag and drop into workspace</p>
-          <div className="sidebar-list">
-            {availableModules.map((mod) => (
-              <div
-                key={mod.id}
-                className="sidebar-item"
-                draggable
-                onDragStart={(e) => e.dataTransfer.setData("moduleId", mod.id)}
-              >
-                {mod.label}
+          {activeTab === 'modules' && (
+            <div className="tab-pane">
+              <h3>Tool Library</h3>
+              <p className="sidebar-sub">
+                {isLocked ? "Unlock dashboard to drag modules." : "Drag and drop into workspace"}
+              </p>
+              <div className="sidebar-list">
+                {availableModules.map((mod) => (
+                  <div
+                    key={mod.id}
+                    className={`sidebar-item ${isLocked ? 'disabled' : ''}`}
+                    draggable={!isLocked}
+                    onDragStart={(e) => {
+                      if (!isLocked) e.dataTransfer.setData("moduleId", mod.id);
+                    }}
+                  >
+                    {mod.label}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {activeTab === 'presets' && (
+            <div className="tab-pane">
+              <h3>Saved Layouts</h3>
+              <p className="sidebar-sub">Quickly switch views</p>
+
+              {!isLocked && (
+                <button className="save-preset-btn" onClick={handleSavePreset}>
+                  + Save Current Layout
+                </button>
+              )}
+
+              <div className="sidebar-list">
+                {presets.length === 0 ? (
+                  <p className="empty-presets">No presets saved yet.</p>
+                ) : (
+                  presets.map((preset) => (
+                    <div key={preset.id} className="preset-item">
+                      <button
+                        className="preset-load-btn"
+                        onClick={() => handleLoadPreset(preset.layout)}
+                      >
+                        {preset.name}
+                      </button>
+                      <button
+                        className="preset-delete-btn"
+                        onClick={() => handleDeletePreset(preset.id)}
+                        title="Delete Preset"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </aside>
     </div>

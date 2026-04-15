@@ -1,52 +1,40 @@
 import React from "react";
-import "./Modules.css";
 
 const AnalysisChart = ({ data }) => {
-  // If no data is passed yet, we'll use this mock set
   const features = data || [
-    { name: "NIHSS Score", value: 0.85 },
-    { name: "Age", value: 0.42 },
-    { name: "Blood Glucose", value: -0.25 },
-    { name: "Prior Stroke", value: 0.15 },
-    { name: "Systolic BP", value: -0.12 },
+    { name: "BP Systolic", value: 3.0 },
+    { name: "BP Diastolic", value: 2.2 },
+    { name: "Glucose", value: -1.2 },
+    { name: "LDL Cholesterol", value: -1.0 },
   ];
 
   return (
-    <div className="module-body shap-container">
-      <div className="shap-header">
-        <span className="shap-title">Feature Importance (SHAP)</span>
-        <span className="shap-subtitle">Impact on Model Prediction</span>
-      </div>
+    <div className="shap-viz">
+      <h2 className="clinical-title">SHAP/LIME</h2>
+      <div className="shap-axis-wrapper">
+        <div className="vertical-axis"></div>
+        {features.map((f, i) => {
+          const isPos = f.value > 0;
+          const absVal = Math.abs(f.value);
+          const width = Math.min((absVal / 5) * 100, 100); // Scale relative to 5.0
 
-      <div className="shap-list">
-        {features.map((f, i) => (
-          <div key={i} className="shap-row">
-            <div className="shap-label">{f.name}</div>
-            <div className="shap-bar-wrapper">
-              {/* Left side (Negative impact) */}
-              <div className="shap-axis-half">
-                {f.value < 0 && (
-                  <div
-                    className="shap-bar negative"
-                    style={{ width: `${Math.abs(f.value) * 100}%` }}
-                  />
-                )}
-              </div>
-              {/* Right side (Positive impact) */}
-              <div className="shap-axis-half">
-                {f.value > 0 && (
-                  <div
-                    className="shap-bar positive"
-                    style={{ width: `${f.value * 100}%` }}
-                  />
-                )}
+          return (
+            <div key={i} className="shap-row-new">
+              <div className="shap-label-new">{f.name}</div>
+              <div className="bar-track">
+                <div
+                  className={`bar-fill ${isPos ? "pos" : "neg"}`}
+                  style={{
+                    width: `${width / 2}%`,
+                    [isPos ? "left" : "right"]: "50%"
+                  }}
+                >
+                  <span className="bar-val-text">{isPos ? `+${f.value}` : f.value}</span>
+                </div>
               </div>
             </div>
-            <div className="shap-value">
-              {f.value > 0 ? `+${f.value}` : f.value}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

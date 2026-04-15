@@ -63,7 +63,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: 200%;
   border: 8px solid #eee;
   flex-shrink: 1; /* Allows the circle to shrink if pushed */
   transition: all 0.4s ease;

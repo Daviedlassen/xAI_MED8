@@ -2,34 +2,108 @@
   --sidebar-width: 360px;
   --ios-easing: cubic-bezier(0.4, 0, 0.2, 1);
   --transition-speed: 0.5s;
+  --med-blue: #5fa8d3;
+  --med-orange: #f28f5d;
+  --danger-bg: #ffe5e5;
+  --safe-bg: #e8f2ff;
 }
 
-/* 1. LOCK DOWN THE APP */
+.clinical-title { font-size: 24px; font-weight: 800; margin-bottom: 20px; }
+
+.clinical-header-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  padding: 10px;
+}
+.header-stat { font-size: 14px; }
+.stat-label { font-weight: 700; margin-right: 8px; }
+
+.clinical-var-row { margin-bottom: 25px; }
+.var-name { font-weight: 700; font-size: 16px; display: block; margin-bottom: 8px; }
+.var-controls { display: flex; align-items: center; gap: 20px; }
+
+.value-display-box {
+  background: white;
+  border: 1px solid #d1d1d6;
+  border-radius: 8px;
+  padding: 8px;
+  min-width: 85px;
+  text-align: center;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.v-num { font-size: 22px; font-weight: 800; color: #5fa8d3; display: block; }
+.v-unit { font-size: 10px; color: #8e8e93; text-transform: uppercase; }
+
+.slider-container { flex: 1; }
+.clinical-range {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 35px; /* Thicker for the medical look */
+  border-radius: 4px;
+  outline: none;
+  border: 1px solid #c7c7cc;
+}
+
+.clinical-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 2px; height: 45px;
+  background: #333; /* The triangle-style needle */
+  cursor: pointer;
+}
+
+.slider-ticks {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: #8e8e93; margin-top: 4px;
+}
+
+/* --- SHAP Mirrored Chart --- */
+.shap-axis-wrapper { position: relative; padding: 20px 0; }
+.vertical-axis {
+  position: absolute; left: 50%; top: 0; bottom: 0;
+  width: 2px; background: #333; z-index: 2;
+}
+.shap-row-new { display: flex; align-items: center; margin-bottom: 20px; height: 30px; }
+.shap-label-new { width: 35%; font-size: 13px; font-weight: 600; }
+.bar-track { flex: 1; position: relative; height: 100%; }
+
+.bar-fill { position: absolute; height: 25px; top: 2.5px; transition: 0.3s; }
+.bar-fill.pos { background: var(--med-blue); border-radius: 0 4px 4px 0; }
+.bar-fill.neg { background: var(--med-orange); border-radius: 4px 0 0 4px; }
+
+.bar-val-text {
+  position: absolute; top: 5px; font-size: 12px; font-weight: 800;
+}
+.pos .bar-val-text { right: -35px; color: var(--med-blue); }
+.neg .bar-val-text { left: -35px; color: var(--med-orange); }
+
+/* 1. APP BASE */
 .app-layout {
   display: flex;
   flex-direction: row;
   height: 100vh;
   width: 100vw;
   background-color: #f2f2f7;
-  overflow: hidden; /* Absolute lockdown on scrolling */
+  overflow: hidden;
   position: relative;
 }
 
 /* 2. DASHBOARD CANVAS */
 .dashboard-wrapper {
   flex: 1;
-  padding: 40px 60px;
+  padding: 20px; /* Reduced for more screen real estate */
   display: flex;
   flex-direction: column;
-
-  /* Now allows vertical scrolling since scaling is removed */
   overflow-y: auto;
   overflow-x: hidden;
-  align-items: center;
+  /* CRITICAL: This was 'center', which caused the margins on left/right */
+  align-items: stretch;
   transition: all var(--transition-speed) var(--ios-easing);
+  width: 100%;
 }
 
-/* 3. THE SIDEBAR PUSH LOGIC */
+/* 3. SIDEBAR LOGIC */
 .module-sidebar {
   width: var(--sidebar-width);
   height: 100vh;
@@ -42,14 +116,17 @@
               visibility var(--transition-speed) var(--ios-easing);
   margin-right: 0;
   visibility: visible;
+  display: flex;
+  flex-direction: column;
 }
 
+/* REMOVED: .is-locked .module-sidebar hiding logic. Sidebar stays visible now! */
 .sidebar-closed .module-sidebar {
   margin-right: calc(var(--sidebar-width) * -1);
   visibility: hidden;
 }
 
-/* 4. THE GLUED TOGGLE */
+/* 4. TOGGLE BUTTON */
 .sidebar-toggle {
   position: fixed;
   top: 50%;
@@ -69,7 +146,6 @@
   align-items: center;
   justify-content: center;
   color: #8e8e93;
-  outline: none;
 }
 
 .sidebar-closed .sidebar-toggle {
@@ -79,12 +155,12 @@
 /* 5. HEADER */
 .header-area {
   width: 100%;
-  max-width: 1400px;
+  max-width: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 30px;
-  flex-shrink: 0;
+  margin-bottom: 20px;
+  padding: 0 10px;
   z-index: 10;
 }
 
@@ -100,19 +176,129 @@
   display: flex; align-items: center; justify-content: center;
 }
 
-/* 6. SIDEBAR CONTENT */
-.sidebar-content {
-  padding: 40px 24px;
+/* 6. LOCK BUTTON */
+.lock-toggle-btn {
+  margin-left: 20px;
+  padding: 8px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: white;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lock-toggle-btn.active {
+  background: #34c759;
+  color: white;
+  border-color: #34c759;
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.2);
+}
+
+/* 7. SCALER & GRID */
+.workspace-scaler {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* Ensure children take up full width */
+  width: 100%;
+  transform-origin: top center;
+}
+
+.ios-grid-container {
+  display: grid;
+  /* Using 6 columns instead of 4 allows for more granular "Full Width" spans */
+  grid-template-columns: repeat(6, 1fr);
+  gap: 20px;
+  width: 100%;
+  max-width: none;
+}
+
+/* 8. LOCK LOGIC (Hiding Clutter in Workspace) */
+.is-locked .drag-handle,
+.is-locked .remove-btn,
+.is-locked .pill,
+.is-locked .striped-drop-zone,
+.is-locked .add-container-btn {
+  display: none !important;
+}
+
+.is-locked .glass-card {
+  cursor: default;
+}
+
+
+
+/* 9. MODULE STYLING */
+.module-card {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
+  background: white;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+}
+
+.grid-item.size-normal {
+  grid-column: span 4;
+    grid-row: span 0;
+}
+.grid-item.risk-score {
+  grid-column: span 2;
+}
+.grid-item.size-wide {
+  grid-column: span 3;
+  grid-row: span 1;
+}
+
+/* 10. SIDEBAR TABS & CONTENT */
+.sidebar-tabs {
+  display: flex;
+  border-bottom: 1px solid #e5e5ea;
+  background: #fcfcfc;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 16px 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #8e8e93;
+  cursor: pointer;
+  transition: 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-btn.active {
+  color: #007aff;
+  border-bottom-color: #007aff;
+  background: white;
+}
+
+.sidebar-content {
+  padding: 30px 24px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-sub {
+  color: #8e8e93;
+  font-size: 13px;
+  margin-bottom: 20px;
 }
 
 .sidebar-item {
   padding: 18px;
   background: white;
-  border-radius: 18px;
-  margin-bottom: 14px;
+  border-radius: 14px;
+  margin-bottom: 12px;
   cursor: grab;
   border: 1px solid rgba(0, 0, 0, 0.05);
   font-size: 14px;
@@ -121,55 +307,77 @@
   transition: 0.2s ease;
 }
 
-/* 7. SCALER & GRID */
-.workspace-scaler {
+.sidebar-item.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+/* PRESETS UI */
+.save-preset-btn {
+  width: 100%;
+  padding: 14px;
+  background: #f2f2f7;
+  border: 1px dashed #c7c7cc;
+  border-radius: 12px;
+  color: #007aff;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: 0.2s;
+}
+
+.save-preset-btn:hover {
+  background: #e5e5ea;
+}
+
+.preset-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  width: 100%;
-}
-
-.ios-grid-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* Slightly wider base */
-  grid-auto-rows: minmax(140px, auto); /* Allows cards to grow if text is long */
-  gap: 24px;
-  width: 100%;
-}
-
-.sortable-module > div {
-  height: 100%;
-  width: 100%;
-  display: flex;
-}
-
-.module-card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
+  justify-content: space-between;
   background: white;
-  border-radius: 28px; /* Softer iOS corners */
+  border: 1px solid #e5e5ea;
+  border-radius: 14px;
+  margin-bottom: 10px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
 }
 
-.module-header {
-  padding: 20px 24px 0 24px;
-  flex-shrink: 0;
-}
-
-/* THE FIX YOU PROVIDED */
-.module-body {
+.preset-load-btn {
   flex: 1;
-  padding: 20px 24px 24px 24px; /* Balanced internal padding */
-  display: flex;
-  flex-direction: column;
-  justify-content: center; /* Centers the circle vertically */
-  align-items: center;    /* Centers everything horizontally */
-  overflow: hidden;
+  padding: 16px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-weight: 600;
+  color: #1c1c1e;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.grid-item.size-normal { grid-column: span 2; grid-row: span 2; }
-.grid-item.size-wide   { grid-column: span 4; grid-row: span 2; }
-.grid-item.size-large  { grid-column: span 3; grid-row: span 3; }
+.preset-load-btn:hover {
+  background: rgba(0, 122, 255, 0.05);
+}
+
+.preset-delete-btn {
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: none;
+  border-left: 1px solid #e5e5ea;
+  color: #ff3b30;
+  font-size: 20px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.preset-delete-btn:hover {
+  background: #fff0f0;
+}
+
+.empty-presets {
+  color: #8e8e93;
+  font-size: 14px;
+  text-align: center;
+  margin-top: 20px;
+  font-style: italic;
+}

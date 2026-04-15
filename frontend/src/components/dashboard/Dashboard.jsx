@@ -1,3 +1,4 @@
+/*V1*/
 import React, { useState, useMemo, useEffect } from "react";
 import { DndContext, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from "@dnd-kit/sortable";

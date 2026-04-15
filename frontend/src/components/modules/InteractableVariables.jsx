@@ -1,3 +1,4 @@
+/*V1*/
 import React, { useMemo } from "react";
 
 const InteractableVariables = ({ patientData, thresholds, onChange, activeCategory }) => {

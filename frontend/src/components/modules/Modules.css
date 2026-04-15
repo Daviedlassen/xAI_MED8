@@ -178,3 +178,69 @@
   display: none; /* Hide scrollbar Chrome/Safari */
 }
 
+.dual-slider-container {
+  position: relative;
+  width: 100%;
+  height: 60px; /* Extra space for labels */
+  display: flex;
+  align-items: center;
+}
+
+.gauge-track {
+  position: absolute;
+  height: 30px;
+  width: 100%;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  pointer-events: none; /* Let clicks pass through to sliders */
+  z-index: 1;
+}
+
+/* Invisible sliders layered on top */
+.thumb-input {
+  position: absolute;
+  width: 100%;
+  pointer-events: none;
+  appearance: none;
+  background: none;
+  z-index: 2;
+  margin: 0;
+}
+
+.thumb-input::-webkit-slider-thumb {
+  appearance: none;
+  pointer-events: auto;
+  width: 14px;
+  height: 34px;
+  background: #333;
+  border-radius: 2px;
+  cursor: ew-resize;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.patient-marker {
+  position: absolute;
+  top: -10px;
+  width: 2px;
+  height: 40px;
+  background: #000;
+  z-index: 0;
+}
+
+.patient-marker::before {
+  content: '▼';
+  position: absolute;
+  top: -8px;
+  left: -5px;
+  font-size: 10px;
+}
+
+.tick-label {
+  position: absolute;
+  top: 35px;
+  font-size: 10px;
+  font-weight: bold;
+  transform: translateX(-50%);
+}
+

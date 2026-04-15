@@ -34,10 +34,20 @@ const availableModules = [
 ];
 
 const Dashboard = () => {
-  const [patientData, setPatientData] = useState({
-    nihss: 5, age: 65, glucose: 110, prestroke_mrs: 0,
-    sys_bp: 140, dis_bp: 90, cholesterol: 200
-  });
+  const [patientData] = useState({
+  nihss: 5,
+  age: 65,
+  glucose: 110,
+  sys_bp: 140,
+  cholesterol: 200
+});
+
+  const [thresholds, setThresholds] = useState({
+  sys_bp: { low: 80, high: 220 },
+  glucose: { low: 80, high: 180 },
+  cholesterol: { low: 60, high: 100 },
+  nihss: { low: 0, high: 4 }
+});
 
   const [activeVariableCategory, setActiveVariableCategory] = useState("top");
   const [isLocked, setIsLocked] = useState(false);
@@ -81,24 +91,25 @@ const Dashboard = () => {
 
   // COMPONENT MAP - defined inside to access shapData and patientData
   const COMPONENT_MAP = {
-    history: () => <PatientHistory />,
-    analysis: (size) => <AnalysisChart data={shapData} size={size} />,
-    interact: (size) => (
-      <InteractableVariables
-        values={patientData}
-        onChange={setPatientData}
-        activeCategory={activeVariableCategory}
-        size={size}
-      />
-    ),
-    risk: (size) => <RiskScore score={0.24} size={size} />,
-    tabs: () => (
-      <TabModule
-        activeCategory={activeVariableCategory}
-        onCategoryChange={setActiveVariableCategory}
-      />
-    ),
-  };
+  history: () => <PatientHistory />,
+  analysis: (size) => <AnalysisChart data={shapData} size={size} />,
+  interact: (size) => (
+    <InteractableVariables
+      patientData={patientData}     // Static patient facts
+      thresholds={thresholds}       // Adjustable boundaries
+      onChange={setThresholds}      // Slider updates the limit
+      activeCategory={activeVariableCategory}
+      size={size}
+    />
+  ),
+  risk: (size) => <RiskScore score={0.24} size={size} />,
+  tabs: () => (
+    <TabModule
+      activeCategory={activeVariableCategory}
+      onCategoryChange={setActiveVariableCategory}
+    />
+  ),
+};
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),

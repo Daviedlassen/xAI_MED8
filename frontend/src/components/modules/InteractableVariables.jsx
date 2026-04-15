@@ -1,66 +1,86 @@
 import React, { useMemo } from "react";
 
-const InteractableVariables = ({ values, onChange, shapData, activeCategory }) => {
+const InteractableVariables = ({ patientData, thresholds, onChange, activeCategory }) => {
   const allConfigs = {
-    sys_bp: { label: "BP Systolic", unit: "mmHg", min: 60, max: 240, safe: [80, 220], category: "cardio" },
-    dis_bp: { label: "BP Diastolic", unit: "mmHg", min: 20, max: 220, safe: [60, 120], category: "cardio" },
-    glucose: { label: "Glucose", unit: "mg/DL", min: 60, max: 220, safe: [80, 180], category: "metabolic" },
-    cholesterol: { label: "LDL Cholesterol", unit: "mg/DL", min: 0, max: 190, safe: [60, 100], category: "cardio" },
-    clopidogrel: { label: "Clopidogrel", unit: "mg", min: 0, max: 150, safe: [0, 75], category: "med" },
-    nihss: { label: "NIHSS Score", unit: "pts", min: 0, max: 42, safe: [0, 4], category: "other" },
+    sys_bp: { label: "BP Systolic", unit: "mmHg", min: 60, max: 240, category: "cardio" },
+    dis_bp: { label: "BP Diastolic", unit: "mmHg", min: 20, max: 220, category: "cardio" },
+    glucose: { label: "Glucose", unit: "mg/DL", min: 60, max: 220, category: "metabolic" },
+    cholesterol: { label: "LDL Cholesterol", unit: "mg/DL", min: 0, max: 190, category: "cardio" },
+    clopidogrel: { label: "Clopidogrel", unit: "mg", min: 0, max: 150, category: "med" },
+    nihss: { label: "NIHSS Score", unit: "pts", min: 0, max: 42, category: "other" },
   };
 
-  const topContributorKeys = useMemo(() => {
-    if (!shapData) return ["sys_bp", "glucose"];
-    return [...shapData]
-      .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
-      .map(item => {
-        const n = item.name.toLowerCase();
-        if (n.includes("bp") || n.includes("systolic")) return "sys_bp";
-        if (n.includes("glucose")) return "glucose";
-        if (n.includes("nihss")) return "nihss";
-        return null;
-      }).filter(Boolean).slice(0, 4);
-  }, [shapData]);
-
   const renderList = useMemo(() => {
-    if (activeCategory === "top") return topContributorKeys.map(k => ({ ...allConfigs[k], key: k }));
-    return Object.entries(allConfigs)
-      .filter(([_, v]) => v.category === activeCategory)
-      .map(([k, v]) => ({ ...v, key: k }));
-  }, [activeCategory, topContributorKeys]);
+    const keys = Object.keys(allConfigs);
+    if (activeCategory === "top") {
+      return ["sys_bp", "glucose", "nihss"].map(k => ({ ...allConfigs[k], key: k }));
+    }
+    return keys
+      .filter(k => allConfigs[k].category === activeCategory)
+      .map(k => ({ ...allConfigs[k], key: k }));
+  }, [activeCategory]);
+
+  const handleUpdate = (key, type, newVal) => {
+    const current = thresholds[key] || { low: 0, high: 100 };
+    const val = Number(newVal);
+    if (type === 'low' && val >= current.high) return;
+    if (type === 'high' && val <= current.low) return;
+
+    onChange({
+      ...thresholds,
+      [key]: { ...current, [type]: val }
+    });
+  };
 
   return (
-    <div className="variable-content-module">
-      <header className="content-header">
-        <h2 className="module-title">Changeable variables</h2>
-        <span className="non-actionable-tag">non-actionable</span>
+    <div className="variable-content-module" style={{ width: '100%', height: '100%' }}>
+      <header className="content-header" style={{ marginBottom: '20px' }}>
+        <h2 className="module-title">Risk Thresholds</h2>
       </header>
 
       <div className="sliders-scroll-area">
         {renderList.map((s) => {
-          const val = values[s.key] || s.min;
-          const start = ((s.safe[0] - s.min) / (s.max - s.min)) * 100;
-          const end = ((s.safe[1] - s.min) / (s.max - s.min)) * 100;
+          const patientVal = patientData[s.key] || 0;
+          const { low, high } = thresholds[s.key] || { low: s.min, high: s.max };
+
+          const lowPct = ((low - s.min) / (s.max - s.min)) * 100;
+          const highPct = ((high - s.min) / (s.max - s.min)) * 100;
+          const patientPct = ((patientVal - s.min) / (s.max - s.min)) * 100;
+          const isUnsafe = patientVal < low || patientVal > high;
 
           return (
             <div key={s.key} className="clinical-var-row">
-              <span className="var-label">{s.label}</span>
-              <div className="var-interaction-group">
-                <div className="value-box">
-                  <span className="v-num">{val}</span>
-                  <span className="v-unit">{s.unit}</span>
+              <div className="var-value-stack">
+                <span className={`v-num ${isUnsafe ? "critical" : ""}`}>{patientVal}</span>
+                <span className="v-unit">{s.unit}</span>
+              </div>
+
+              <div className="dual-slider-container">
+                <span className="var-label">{s.label}</span>
+                <div
+                  className="gauge-track"
+                  style={{
+                    background: `linear-gradient(to right, 
+                      #ffe5e5 0%, #ffe5e5 ${lowPct}%, 
+                      #e8f2ff ${lowPct}%, #e8f2ff ${highPct}%, 
+                      #ffe5e5 ${highPct}%, #ffe5e5 100%)`
+                  }}
+                >
+                  <div className="patient-marker" style={{ left: `${patientPct}%` }} />
+                  <span className="tick-label" style={{ left: `${lowPct}%` }}>{low}</span>
+                  <span className="tick-label" style={{ left: `${highPct}%` }}>{high}</span>
                 </div>
-                <div className="slider-wrapper">
-                  <input
-                    type="range" min={s.min} max={s.max} value={val}
-                    onChange={(e) => onChange({ ...values, [s.key]: Number(e.target.value) })}
-                    className="clinical-range"
-                    style={{
-                      background: `linear-gradient(to right, #ffe5e5 ${start}%, #e8f2ff ${start}%, #e8f2ff ${end}%, #ffe5e5 ${end}%)`
-                    }}
-                  />
-                </div>
+
+                <input
+                  type="range" min={s.min} max={s.max} value={low}
+                  onChange={(e) => handleUpdate(s.key, 'low', e.target.value)}
+                  className="thumb-input"
+                />
+                <input
+                  type="range" min={s.min} max={s.max} value={high}
+                  onChange={(e) => handleUpdate(s.key, 'high', e.target.value)}
+                  className="thumb-input"
+                />
               </div>
             </div>
           );

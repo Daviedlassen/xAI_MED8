@@ -14,16 +14,18 @@ import TabModule from "../modules/TabModule";
 import "./Dashboard.css";
 
 const MAX_MODULES = 8;
-const STORAGE_KEY = "clinical-dashboard-layout-v2";
+const STORAGE_KEY = "clinical-dashboard-layout-v3";
 const PRESETS_KEY = "dashboard-presets-v1";
 
 // STEP 2 PREP: This is your "Master Layout".
 // Anyone who loads the project for the first time will see this.
 const DEFAULT_LAYOUT = [
-  { id: "cont_1", contentId: "history", size: "size-wide" },
-  { id: "cont_2", contentId: "analysis", size: "size-large" },
-  { id: "cont_3", contentId: "interact", size: "size-wide" },
-  { id: "cont_4", contentId: "tabs", size: "size-normal" },
+  { id: "c_1776167311497", contentId: "history", size: "size-normal" },
+  { id: "c_1776165859467", contentId: "risk", size: "size-risk-score" },
+  { id: "c_1776252291422", contentId: "tabs", size: "size-wide" },
+  { id: "c_1776252294573", contentId: "tabs", size: "size-wide" },
+  { id: "c_1776252297659", contentId: "interact", size: "size-wide" },
+  { id: "c_1776252303382", contentId: "analysis", size: "size-wide" }
 ];
 
 const availableModules = [

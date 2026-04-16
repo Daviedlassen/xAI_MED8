@@ -37,19 +37,41 @@ const availableModules = [
 ];
 
 const Dashboard = () => {
-  const [patientData] = useState({
-  nihss: 5,
+ // Inside Dashboard.jsx:
+
+const [patientData] = useState({
+  nihss: 2,
   age: 65,
   glucose: 110,
   sys_bp: 140,
-  cholesterol: 200
+  dis_bp: 80,        // Added Diastolic BP
+  cholesterol: 88    // Added LDL Cholesterol
 });
 
-  const [thresholds, setThresholds] = useState({
+const [thresholds, setThresholds] = useState({
   sys_bp: { low: 80, high: 220 },
+  dis_bp: { low: 60, high: 110 },    // Added threshold for Diastolic
   glucose: { low: 80, high: 180 },
-  cholesterol: { low: 60, high: 100 },
-  nihss: { low: 0, high: 4 }
+  cholesterol: { low: 0, high: 70 }, // Added threshold for LDL
+  nihss: { low: 0, high: 4 },
+
+  // Initialize all medications to 'No' so the buttons work immediately
+  anti_diabetics: { val: 'No' },
+  clopidogrel: { val: 'No' },
+  cilostazol: { val: 'No' },
+  ticagrelor: { val: 'No' },
+  ticlopidine: { val: 'No' },
+  prasugrel: { val: 'No' },
+  dipyridamol: { val: 'No' },
+  rivoroxaban: { val: 'No' },
+  warfarin: { val: 'No' },
+  edoxaban: { val: 'No' },
+  dabigatran: { val: 'No' },
+  heparin: { val: 'No' },
+  apixaban: { val: 'No' },
+  active_smoker: { val: 'No' },
+  ivt_count: { val: 'No' },
+  physio_72h: { val: 'No' }
 });
 
   const [activeVariableCategory, setActiveVariableCategory] = useState("top");

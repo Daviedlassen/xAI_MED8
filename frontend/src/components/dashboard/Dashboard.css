@@ -28,6 +28,13 @@
   width: 100%;
 }
 
+.clinical-var-row-full {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .var-value-stack {
   display: flex;
   flex-direction: column;
@@ -35,6 +42,12 @@
   align-items: center;
   min-width: 90px; /* Ensures the gauge starts at the same spot in every row */
   text-align: center;
+}
+
+.var-header-inline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .var-name { font-weight: 700; font-size: 16px; display: block; margin-bottom: 8px; }
@@ -387,6 +400,17 @@
   margin-bottom: 6px;
 }
 
+.var-label-small {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.var-label-bold {
+  font-weight: 700;
+  font-size: 14px;
+}
+
 .preset-delete-btn {
   width: 44px;
   height: 44px;
@@ -429,6 +453,14 @@
   border-right: 6px solid transparent;
   border-top: 10px solid #000;
   transform: translateX(-50%);
+}
+
+.patient-val-pill {
+  background: #f2f2f7;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .patient-marker::after {
@@ -496,6 +528,12 @@
   flex-direction: column;
 }
 
+.dual-slider-container-full {
+  position: relative;
+  width: 100%;
+  height: 40px;
+}
+
 .var-label {
   font-size: 14px;
   font-weight: 700;
@@ -508,6 +546,36 @@
   width: 100%;
   border-radius: 8px;
   border: 1px solid #e5e5ea;
+}
+
+.gauge-track-wide {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.thumb-input-wide {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  appearance: none;
+  background: none;
+  pointer-events: none;
+}
+
+.thumb-input-wide::-webkit-slider-thumb {
+  appearance: none;
+  pointer-events: auto;
+  width: 20px;
+  height: 30px;
+  background: #333;
+  cursor: pointer;
+  border-radius: 4px;
 }
 
 .patient-marker {
@@ -551,3 +619,226 @@
   cursor: ew-resize;
   box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
+
+/* Picture 2 & 3: Button Groups */
+.ios-toggle-group {
+  display: flex;
+  background: #f2f2f7;
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.ios-pill-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.ios-pill-btn.active {
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  color: #007aff;
+}
+
+/* Picture 2: Numeric Input Box */
+.ios-input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d1d1d6;
+  border-radius: 8px;
+  width: fit-content;
+  padding: 4px 12px;
+  background: white;
+}
+
+.ios-num-input {
+  border: none;
+  font-size: 18px;
+  font-weight: 700;
+  width: 50px;
+  outline: none;
+}
+
+.input-unit {
+  font-weight: 700;
+  color: #1c1c1e;
+}
+
+/* Layout override for non-slider rows */
+.full-width-control {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.full-container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.fixed-height-module {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevents the whole box from growing */
+}
+
+.variable-grid-area {
+  flex: 1;
+  overflow-y: auto; /* Adds the internal scrollbar */
+  padding-right: 10px;
+  display: grid;
+  gap: 15px;
+}
+
+.variable-scroll-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: stretch; /* Prevents centering/squishing */
+}
+
+.variable-scroll-wrapper.grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: start;
+}
+
+.variable-grid-area.two-column {
+  grid-template-columns: 1fr 1fr;
+  align-content: start;
+}
+
+.variable-grid-area.one-column {
+  grid-template-columns: 1fr;
+}
+
+.variable-control-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* --- METRICS: Discrete Scale Boxes --- */
+.discrete-box-group {
+  display: flex;
+  width: 100%;       /* Spans the full width of the column */
+  gap: 8px;          /* Matches the spacing in your design */
+  margin-top: 6px;
+}
+
+.discrete-btn {
+  flex: 1;           /* Forces all buttons to grow equally to fill the space */
+  height: 40px;      /* Slightly taller for better touch/click targets */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d1d1d6;
+  background: white;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 16px;
+  color: #1c1c1e;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.discrete-btn.active {
+  background: #d1d1d6;
+  border-color: #d1d1d6;
+}
+
+.sub-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #8e8e93;
+  font-weight: 700;
+  margin-top: 6px;
+  width: 100%;
+}
+
+/* --- METRICS: Input Box --- */
+.styled-num-input {
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  width: 45px; /* Increased from 25px to fit 3+ digits */
+  outline: none;
+  padding: 0;
+  color: #1c1c1e;
+  text-align: center; /* Centers the number for better aesthetics */
+}
+
+.styled-num-input-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d1d1d6;
+  border-radius: 4px;
+  padding: 6px 10px; /* Adjusted padding */
+  width: fit-content; /* Container grows with content */
+  gap: 6px;
+  margin-top: 6px;
+  background: white;
+  min-width: 80px; /* Ensures a consistent base size */
+}
+
+.styled-num-unit {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1c1c1e;
+}
+
+/* --- MEDICATIONS: Segmented Toggles --- */
+.segmented-toggle-group {
+  display: flex;
+  border: 1px solid #d1d1d6;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.segmented-btn {
+  flex: 1;
+  padding: 6px 0;
+  background: white;
+  border: none;
+  font-weight: 700;
+  font-size: 13px;
+  color: #1c1c1e;
+  cursor: pointer;
+  transition: 0.1s;
+}
+
+.segmented-btn.active {
+  background: #d1d1d6; /* Matches the flat gray in the UI */
+}
+
+/* --- MEDICATIONS: Divider Line --- */
+.med-divider {
+  grid-column: 1 / -1; /* Spans across both columns in the grid */
+  border: none;
+  border-top: 1px solid #1c1c1e;
+  margin: 10px 0;
+  width: 100%;
+}
+
+/* Ensure the header text uses the standard clinical bold look */
+.clinical-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  color: #000;
+}
+

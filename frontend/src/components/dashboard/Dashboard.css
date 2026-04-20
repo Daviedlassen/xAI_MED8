@@ -88,25 +88,88 @@
   font-size: 11px; color: #8e8e93; margin-top: 4px;
 }
 
+
 /* --- SHAP Mirrored Chart --- */
 .shap-axis-wrapper { position: relative; padding: 20px 0; }
 .vertical-axis {
   position: absolute; left: 50%; top: 0; bottom: 0;
   width: 2px; background: #333; z-index: 2;
 }
-.shap-row-new { display: flex; align-items: center; margin-bottom: 20px; height: 30px; }
-.shap-label-new { width: 35%; font-size: 13px; font-weight: 600; }
-.bar-track { flex: 1; position: relative; height: 100%; }
+.shap-row-new {
+    display: flex;
+    align-items: center;
+    height: 35px;
+    margin-bottom: 4px;
+    position: relative;
+}
+.shap-label-new {
+    width: 50%;
+    text-align: left;
+    font-size: 0.85rem;
+    padding-right: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 1; /* Prevents labels from squishing the chart */
+}
+.bar-track {
+    width: 60%;
+    height: 100%;
+    position: relative;
+    /* Ensure no borders here to avoid the 'double line' effect */
+    border: none;
+}
 
-.bar-fill { position: absolute; height: 25px; top: 2.5px; transition: 0.3s; }
+.shap-chart-container {
+    position: relative;
+    padding-top: 10px;
+}
+
+.vertical-center-line {
+    position: absolute;
+    left: 71%; /* Mathematically centers the line in the 60% track */
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #333;
+    z-index: 1;
+}
+
+.bar-fill {
+    height: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: width 0.3s ease;
+}
 .bar-fill.pos { background: var(--med-blue); border-radius: 0 4px 4px 0; }
 .bar-fill.neg { background: var(--med-orange); border-radius: 4px 0 0 4px; }
 
 .bar-val-text {
-  position: absolute; top: 5px; font-size: 12px; font-weight: 800;
+    position: absolute;
+    font-size: 0.75rem;
+    font-weight: bold;
+    top: 0;
+    white-space: nowrap;
 }
-.pos .bar-val-text { right: -35px; color: var(--med-blue); }
-.neg .bar-val-text { left: -35px; color: var(--med-orange); }
+
+.pos .bar-val-text {
+    left: 105%; /* Positioned to the right of the blue bar */
+    color: var(--med-blue);
+}
+
+.neg .bar-val-text {
+    right: 105%; /* Positioned to the left of the orange bar */
+    color: var(--med-orange);
+}
+
+
+.others-scroll-area {
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.02);
+    border-top: 1px solid #ddd;
+    margin-top: 5px;
+}
 
 /* 1. APP BASE */
 .app-layout {
@@ -126,6 +189,26 @@
   flex-direction: column; /* stacked label above visual bar */
   justify-content: center;
   min-height: 70px;
+}
+
+.dashboard-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+  background-color: #f2f2f7; /* Standard clinical light gray background */
+}
+
+.dashboard-root.locked {
+  border: 2px solid #ff3b30; /* Red border to show it's locked */
+}
+
+.dashboard-main-content {
+  display: flex;
+  flex: 1;
+  padding-top: 20px; /* Slight padding so it's not touching the bezel */
+  gap: 20px;
 }
 
 /* 2. DASHBOARD CANVAS */
@@ -259,6 +342,11 @@
 .is-locked .striped-drop-zone,
 .is-locked .add-container-btn {
   display: none !important;
+}
+
+.is-other-item {
+    height: 25px; /* Slightly smaller for the sub-list */
+    opacity: 0.8;
 }
 
 .is-locked .glass-card {
@@ -648,7 +736,7 @@
 .ios-input-wrapper {
   display: flex;
   align-items: center;
-  border: 1px solid #d1d1d6;
+  border: 1px solid #555557;
   border-radius: 8px;
   width: fit-content;
   padding: 4px 12px;
@@ -745,7 +833,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid #d1d1d6;
-  background: white;
+  background: #EAEAEAFF;
   border-radius: 4px;
   font-weight: 700;
   font-size: 16px;
@@ -781,10 +869,15 @@
   text-align: center; /* Centers the number for better aesthetics */
 }
 
+.styled-num-input-box.locked {
+  background-color: #f2f2f7;
+  border-color: #d1d1d6;
+}
+
 .styled-num-input-box {
   display: flex;
   align-items: center;
-  border: 1px solid #d1d1d6;
+  border: 1px solid #EAEAEAFF;
   border-radius: 4px;
   padding: 6px 10px; /* Adjusted padding */
   width: fit-content; /* Container grows with content */
@@ -803,7 +896,7 @@
 /* --- MEDICATIONS: Segmented Toggles --- */
 .segmented-toggle-group {
   display: flex;
-  border: 1px solid #d1d1d6;
+  border: 1px solid #EAEAEAFF;
   border-radius: 4px;
   overflow: hidden;
   margin-top: 6px;
@@ -812,7 +905,7 @@
 .segmented-btn {
   flex: 1;
   padding: 6px 0;
-  background: white;
+  background: #eaeaea;
   border: none;
   font-weight: 700;
   font-size: 13px;
@@ -822,7 +915,7 @@
 }
 
 .segmented-btn.active {
-  background: #d1d1d6; /* Matches the flat gray in the UI */
+  background: #616165; /* Matches the flat gray in the UI */
 }
 
 /* --- MEDICATIONS: Divider Line --- */
@@ -836,9 +929,589 @@
 
 /* Ensure the header text uses the standard clinical bold look */
 .clinical-title {
-  font-size: 24px;
+  font-size: 32px;
   font-weight: 800;
-  margin-bottom: 20px;
+  margin: 0 0 24px 0;
   color: #000;
 }
 
+/* Styling for Read Only state */
+.read-only-view .discrete-btn,
+.read-only-view .segmented-btn {
+  cursor: default; /* Remove pointer */
+}
+
+.read-only .discrete-btn,
+.read-only .segmented-btn {
+  cursor: default;
+}
+
+/* Make the disabled input box look like a static label */
+.styled-num-input-box.disabled {
+  background-color: #f2f2f7;
+  border-color: #d1d1d6;
+}
+
+.styled-num-input-box.disabled input {
+  background: transparent;
+  cursor: default;
+}
+
+/* Change 'active' color for Read-Only to be slightly more subtle or standard gray */
+.read-only-view .active {
+  background-color: #464649 !important; /* A darker gray to show it's set but not 'live' */
+  color: white;
+}
+
+.read-only .active {
+  background-color: #d1d1d6 !important;
+  color: #1c1c1e;
+}
+
+.clinical-var-row-full.interactable {
+  opacity: 1;
+}
+
+.control-block-full.read-only {
+  cursor: default;
+}
+
+/* --- 1:1 CLINICAL UI MATCH --- */
+.clinical-var-row-full-wide {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.clinical-gauge-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+  width: 100%;
+}
+
+/* Value Box */
+.value-display-box {
+  width: 110px;
+  height: 90px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  background: white;
+}
+
+.value-display-box.val-info .v-num { color: #5fa8d3; } /* Medical Blue */
+.value-display-box.val-danger .v-num { color: #ff3b30; } /* Danger Red */
+
+.v-num {
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.v-unit {
+  font-size: 14px;
+  font-weight: 600;
+  color: #212123;
+  margin-top: 4px;
+}
+
+/* Gauge Track - stretched */
+.gauge-track-wide {
+  position: relative;
+  flex: 1; /* Stretch to fill space */
+  height: 60px;
+  border-radius: 8px;
+  border: 1px solid #d1d1d6;
+  overflow: visible; /* To allow triangle on top */
+}
+
+/* Patient Triangle Marker */
+.patient-triangle {
+  position: absolute;
+  top: -12px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 15px solid #000;
+  transform: translateX(-50%);
+  z-index: 5;
+}
+
+/* Tick Marks & Labels */
+.tick-label {
+  position: absolute;
+  top: -18px; /* Offset above visual bar */
+  font-size: 11px;
+  font-weight: 800;
+  transform: translateX(-50%);
+  color: #000;
+}
+
+/* Stretched Thumb Inputs */
+.thumb-input-wide {
+  position: absolute;
+  left: 125px; /* Offset for the Value Box */
+  top: -10px;
+  width: calc(100% - 125px); /* Shrink width by Value Box size */
+  pointer-events: none;
+  appearance: none;
+  background: none;
+  height: 60px; /* Aligned with track */
+}
+
+/* Tick lines extending down */
+.low-tick, .high-tick {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 60px;
+  background: rgba(0,0,0,0.3);
+}
+
+/* Guideline Text */
+.guideline-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: #000;
+  text-decoration: underline;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.guideline-text span { font-weight: 800; }
+.guideline-icon { color: #8e8e93; font-size: 10px; }
+
+/* --- Direct-Drag Clinical Gauge --- */
+.var-header-inline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.inline-value-text {
+  font-size: 28px;
+  font-weight: 800;
+}
+.inline-value-text.safe { color: var(--med-blue); }
+.inline-value-text.danger { color: #ff3b30; }
+.inline-value-text small { font-size: 14px; color: #8e8e93; margin-left: 4px; }
+
+.clinical-gauge-wrapper-direct {
+  position: relative;
+  width: 100%;
+  height: 85px; /* Height to accommodate labels above and below */
+  display: flex;
+  align-items: center;
+}
+
+.gauge-track-v2 {
+  position: relative;
+  width: 100%;
+  height: 40px;
+  border-radius: 6px;
+  border: 1px solid #d1d1d6;
+  margin-top: 15px;
+}
+
+/* Draggable Line Handles */
+.threshold-line-handle {
+  position: absolute;
+  top: -22px; /* Pull label above track */
+  height: 65px; /* Line goes through track */
+  width: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+  pointer-events: none; /* Let slider overlay handle the drag */
+  z-index: 5;
+}
+
+.handle-value-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: #000;
+  background: #f2f2f7;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-bottom: 2px;
+}
+
+.line-visual {
+  width: 2px;
+  height: 100%;
+  background: #000;
+}
+
+/* Patient Position */
+.patient-triangle-v2 {
+  position: absolute;
+  top: 6px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 12px solid #000;
+  transform: translateX(-50%);
+  z-index: 4;
+}
+
+/* Overlay Inputs */
+.hidden-slider-overlay {
+  position: absolute;
+  width: 100%;
+  height: 40px;
+  bottom: 0;
+  left: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: ew-resize;
+  pointer-events: auto;
+  z-index: 10;
+}
+
+.track-edge-label {
+  position: absolute;
+  bottom: -18px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #8e8e93;
+}
+.track-edge-label.min { left: 0; }
+.track-edge-label.max { right: 0; }
+
+/* Read-Only State Polish */
+.read-only .active {
+  background-color: #636366 !important; /* Darker clinical grey */
+  color: white !important;
+}
+
+.locked input {
+  background: transparent;
+  pointer-events: none;
+}
+
+/* --- Cardio Row Layout --- */
+.clinical-var-row-full-wide {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.var-label-bold {
+  font-weight: 800;
+  font-size: 15px;
+  color: #000;
+}
+
+.var-label-small {
+  font-size: 14px;
+  font-weight: 700;
+  color: #000;
+  margin-bottom: 4px;
+}
+
+.clinical-gauge-wrapper-direct {
+  display: flex;
+  align-items: stretch;
+  gap: 15px;
+  width: 100%;
+}
+
+/* --- Left Side: Value Box --- */
+.value-display-box-v3 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 90px;
+  background: white;
+  border: 1px solid #d1d1d6;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  padding: 8px 0;
+  flex-shrink: 0;
+}
+
+.v-num-v3 {
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1.1;
+  /* Simulating the outlined text look from your image */
+  -webkit-text-stroke: 1px currentColor;
+}
+.v-num-v3.safe { color: #82b9e6; } /* Light blue */
+.v-num-v3.danger { color: #fc9fa7; } /* Pink/Red */
+
+.v-unit-v3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #000;
+}
+
+/* --- Right Side: Gauge Track --- */
+.gauge-track-v3 {
+  flex: 1;
+  position: relative;
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid #d1d1d6;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: flex-end;
+  height: 60px; /* Adjust based on preference */
+}
+
+.gauge-bg-zones {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.7; /* Makes the background colors softer */
+}
+
+/* Ruler line at the very bottom of the track */
+.gauge-ruler-base {
+  position: absolute;
+  bottom: 10px;
+  left: 5%;
+  width: 90%;
+  height: 1px;
+  background: #8e8e93;
+}
+
+/* --- Dotted Threshold Handles --- */
+.threshold-dotted-line {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 1px;
+  border-left: 1.5px dashed #000;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dotted-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: #000;
+  background: transparent;
+  /* Position the number slightly above the center line */
+  transform: translateY(-10px);
+}
+
+/* --- Patient Indicator --- */
+.patient-marker-v3 {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+  z-index: 6;
+}
+
+.triangle-down {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 12px solid #000;
+}
+
+.marker-line {
+  width: 2px;
+  flex: 1;
+  background: #000;
+}
+
+/* Edge numbers (min / max) */
+.edge-label-v3 {
+  position: absolute;
+  bottom: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #000;
+}
+.edge-label-v3.min { left: 5px; }
+.edge-label-v3.max { right: 5px; }
+
+/* Interactive hidden sliders */
+.hidden-slider-overlay-v3 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: ew-resize;
+  pointer-events: auto;
+  z-index: 10;
+}
+
+/* Guideline text formatting */
+.guideline-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: #000;
+  text-decoration: underline;
+  margin-top: 2px;
+}
+
+.gauge-bg-zones,
+.patient-marker-v3,
+.threshold-dotted-line,
+.gauge-ruler-base {
+  pointer-events: none; /* This allows clicks to pass through to the gauge-track-v3 */
+}
+
+/* --- SHAP Enlarged & Centered Version --- */
+.shap-viz-container {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.shap-grid-body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* Increased gap to enlarge the vertical feel */
+}
+
+/* THE FIX: Vertical line is now centered ONLY in the right 65% of the container */
+.vertical-axis-line {
+    position: absolute;
+    right: 32.5%; /* Centers it exactly in the middle of the 65% track */
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #000;
+    z-index: 1;
+}
+
+.shap-row-new {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 40px; /* Taller rows to enlarge chart */
+    position: relative;
+}
+
+.shap-label-column {
+    width: 35%; /* Fixed space for text */
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    padding-right: 20px;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.shap-track-column {
+    width: 70%; /* Fixed space for bars */
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    z-index: 0;
+}
+
+.bar-fill {
+    position: absolute;
+    height: 30px; /* Thicker bars */
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+}
+
+.bar-fill.pos { background: #5fa8d3; border-radius: 0 4px 4px 0; }
+.bar-fill.neg { background: #f28f5d; border-radius: 4px 0 0 4px; }
+
+/* Positioning the numbers outside the bars */
+.bar-val-text {
+    position: absolute;
+    font-size: 12px;
+    font-weight: 800;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.val-pos { left: calc(100% + 8px); color: #5fa8d3; }
+.val-neg { right: calc(100% + 8px); color: #f28f5d; }
+
+.summary-label {
+    cursor: pointer;
+    color: #666;
+    text-decoration: underline;
+}
+
+.others-expanded-list {
+    background: #f9f9f9;
+    border-radius: 8px;
+    padding: 10px 0;
+    margin-top: -10px;
+}
+
+/* --- LOADING OVERLAY --- */
+.loading-container {
+    position: relative; /* Context for the absolute overlay */
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(2px); /* Subtle iOS-style blur */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    border-radius: 24px; /* Matches your card radius */
+    transition: opacity 0.3s ease;
+}
+
+/* The Spinner Animation */
+.spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid var(--med-blue);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Optional: Fade out the content while loading */
+.content-loading-blur {
+    opacity: 0.4;
+    pointer-events: none;
+    filter: grayscale(0.5);
+}

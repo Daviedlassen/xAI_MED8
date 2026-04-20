@@ -10,31 +10,36 @@ const MRS_LABELS = {
   6: 'Dead',
 };
 
-const getScoreColor = (val) => {
-  if (val <= 2) return '#2ecc71';
-  if (val <= 4) return '#f1c40f';
-  return '#e74c3c';
+// Your new color palette
+const SCORE_COLORS = {
+  0: '#C2EFB3',
+  1: '#CBE3B1',
+  2: '#D4D7AF',
+  3: '#DDCCAE',
+  4: '#E6C0AC',
+  5: '#EFB4AA',
+  6: '#F8A8A8',
 };
 
 const RiskScore = ({ score, loading }) => {
-  const color = getScoreColor(score);
+  // Fallback to score 0 color if score is undefined
+  const currentColor = SCORE_COLORS[score] ?? SCORE_COLORS[0];
   const label = MRS_LABELS[score] ?? '—';
   const isGoodOutcome = score <= 2;
 
-  // Build tick marks 0–6
-  const ticks = [0, 1, 2, 3, 4, 5, 6];
+
 
   return (
     <div className="full-container loading-container" style={{ gap: 0 }}>
-      {/* Loading overlay — uses existing CSS */}
       {loading && (
         <div className="loading-overlay">
           <div className="spinner" />
+
         </div>
       )}
 
       <header className="content-header">
-        <h2 className="clinical-title">Predicted mRS</h2>
+
       </header>
 
       {/* Score hero */}
@@ -45,26 +50,27 @@ const RiskScore = ({ score, loading }) => {
         alignItems: 'center',
         justifyContent: 'center',
         gap: '12px',
+        padding: '20px 0'
       }}>
         {/* Big score circle */}
         <div style={{
           width: 120,
           height: 120,
           borderRadius: '50%',
-          border: `6px solid ${color}`,
+          border: `6px solid ${currentColor}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: `0 0 28px ${color}33`,
-          background: `${color}11`,
+          // Subtle glow using the new specific color
+          boxShadow: `0 0 20px ${currentColor}66`,
+          background: `${currentColor}15`,
           transition: 'all 0.4s ease',
         }}>
           <span style={{
             fontSize: 64,
             fontWeight: 900,
-            color,
+            color: '#333', // Darker text for better contrast against pale colors
             lineHeight: 1,
-            transition: 'color 0.3s ease',
           }}>
             {score}
           </span>
@@ -76,8 +82,8 @@ const RiskScore = ({ score, loading }) => {
             display: 'inline-block',
             padding: '4px 14px',
             borderRadius: 20,
-            background: `${color}22`,
-            color,
+            background: isGoodOutcome ? '#C2EFB388' : '#F8A8A888',
+            color: '#444',
             fontWeight: 700,
             fontSize: 13,
           }}>
@@ -89,56 +95,8 @@ const RiskScore = ({ score, loading }) => {
         </div>
       </div>
 
-      {/* 0–6 scale bar */}
-      <div style={{ padding: '0 20px 20px' }}>
-        <div style={{ position: 'relative', height: 36, marginBottom: 20 }}>
-          {/* Gradient track */}
-          <div style={{
-            position: 'absolute',
-            top: 8,
-            left: 0,
-            right: 0,
-            height: 20,
-            borderRadius: 6,
-            background: 'linear-gradient(to right, #2ecc71 0%, #2ecc71 28%, #f1c40f 28%, #f1c40f 57%, #e74c3c 57%, #e74c3c 100%)',
-            border: '1px solid #e5e5ea',
-          }} />
+      {/* 0–6 Segmented Scale Bar */}
 
-          {/* Active score needle */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: `${(score / 6) * 100}%`,
-            transform: 'translateX(-50%)',
-            transition: 'left 0.4s cubic-bezier(0.4,0,0.2,1)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}>
-            <div style={{
-              width: 0, height: 0,
-              borderLeft: '7px solid transparent',
-              borderRight: '7px solid transparent',
-              borderTop: '10px solid #000',
-            }} />
-            <div style={{ width: 2, height: 28, background: '#000' }} />
-          </div>
-        </div>
-
-        {/* Tick numbers */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 2px' }}>
-          {ticks.map(t => (
-            <span key={t} style={{
-              fontSize: 13,
-              fontWeight: t === score ? 900 : 600,
-              color: t === score ? color : '#8e8e93',
-              transition: 'color 0.3s',
-            }}>
-              {t}
-            </span>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };

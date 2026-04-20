@@ -38,10 +38,10 @@ const Dashboard = () => {
   const [patientData, setPatientData] = useState({
     nihss: 14,
     age: 72,
-    glucose: 110,
-    sys_bp: 160,
-    dis_bp: 120,
-    cholesterol: 180,
+    glucose: 173,
+    sys_bp: 154,
+    dis_bp: 130,
+    cholesterol: 88,
     prestroke_mrs: 3
   });
 

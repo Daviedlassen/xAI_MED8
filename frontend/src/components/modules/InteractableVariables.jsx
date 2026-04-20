@@ -6,8 +6,8 @@ import React, { useMemo, useCallback } from "react";
 const SLIDER_CONFIG = [
   { key: "sys_bp",      label: "BP Systolic",     unit: "mmHg",  min: 60,  max: 240, singleThreshold: false, guidelines: "American Heart Association" },
   { key: "dis_bp",      label: "BP Diastolic",    unit: "mmHg",  min: 20,  max: 220, singleThreshold: true,  guidelines: "American Heart Association" },
-  { key: "glucose",     label: "Glucose",         unit: "mg/dL", min: 20,  max: 400, singleThreshold: false, guidelines: "American Heart Association" },
-  { key: "cholesterol", label: "LDL Cholesterol", unit: "mg/dL", min: 0,   max: 300, singleThreshold: false, guidelines: "American Heart Association" },
+  { key: "glucose",     label: "Glucose",         unit: "mg/dL", min: 20,  max: 210, singleThreshold: false, guidelines: "American Heart Association" },
+  { key: "cholesterol", label: "LDL Cholesterol", unit: "mg/dL", min: 0,   max: 190, singleThreshold: false, guidelines: "American Heart Association" },
 ];
 
 const OTHER_CONFIGS = {

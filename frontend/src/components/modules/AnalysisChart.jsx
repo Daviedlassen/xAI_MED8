@@ -92,7 +92,7 @@ const AnalysisChart = ({ shapData, loading }) => {
     const displayName = formatName(rawName);
 
     return (
-      <div className={`shap-row-new ${isOther ? "is-other-item" : ""}`} key={rawName}>
+      <div className={`shap-row-new ${isOther ? "is-other-item" : ""}`} key={rawName} style={{ alignSelf: 'stretch' }}>
         <div className="shap-label-column" title={displayName}>
           {displayName}
         </div>
@@ -114,24 +114,35 @@ const AnalysisChart = ({ shapData, loading }) => {
   };
 
   return (
-    <div className="shap-viz-container loading-container">
+    <div className="shap-viz-container loading-container" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {loading && (
         <div className="loading-overlay">
           <div className="spinner" />
         </div>
       )}
 
-      <h2 className="clinical-title">Feature Impact (SHAP)</h2>
+      <h2 className="clinical-title" style={{ marginBottom: '10px' }}>Feature Impact (SHAP)</h2>
 
-      <div className={`shap-grid-body ${loading ? "content-loading-blur" : ""}`}>
+      {/* This container ensures content starts at the very top */}
+      <div className={`shap-grid-body ${loading ? "content-loading-blur" : ""}`} style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start', // Forces items to the top
+        alignItems: 'stretch',        // Ensures bars take full width
+        position: 'relative',
+        flex: 1,                      // Fills the remaining space
+        paddingTop: '5px'             // Small nudge from the title
+      }}>
         <div className="vertical-axis-line" />
 
+        {/* Impact Rows */}
         {Object.entries(top).map(([name, value]) => renderShapRow(name, value))}
 
+        {/* Other Factors Toggle */}
         <div
           className="shap-row-new other-summary-row"
           onClick={() => setShowOthers(!showOthers)}
-          style={{ cursor: "pointer" }}
+          style={{ cursor: "pointer", borderTop: '1px solid #eee' }}
         >
           <div className="shap-label-column summary-label">
             Other Factors {showOthers ? "▲" : "▼"}

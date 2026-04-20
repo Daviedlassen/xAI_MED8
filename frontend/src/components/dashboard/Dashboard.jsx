@@ -1,4 +1,4 @@
-/*V1.3 - Dynamic Training + Grouped SHAP*/
+/*V1.3 - Dynamic Training + Grouped SHAP*/ /*V2*/
 import React, { useState, useEffect, useCallback } from "react";
 import { DndContext, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from "@dnd-kit/sortable";

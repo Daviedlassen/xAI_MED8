@@ -1,5 +1,5 @@
 import React from 'react';
-
+/*push*/
 const MRS_LABELS = {
   0: 'No symptoms',
   1: 'No significant disability',

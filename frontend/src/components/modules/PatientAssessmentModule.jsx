@@ -1,3 +1,4 @@
+/*push*/
 import React, { useState, useEffect, useCallback } from 'react';
 import InteractableVariables from './InteractableVariables';
 import RiskScore from './RiskScore';

@@ -1,4 +1,6 @@
 import React, { useMemo, useCallback } from "react";
+/*push*/
+
 
 /* ─────────────────────────────────────────────────────────────
    SLIDER CONFIG

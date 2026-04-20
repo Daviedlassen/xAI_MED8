@@ -1,4 +1,4 @@
-/*V1*/
+/*V1*/ /*V2*/
 import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";

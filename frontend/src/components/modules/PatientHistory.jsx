@@ -1,4 +1,4 @@
-/*V1*/
+/*push*/
 import React from "react";
 
 const PatientHistory = () => {

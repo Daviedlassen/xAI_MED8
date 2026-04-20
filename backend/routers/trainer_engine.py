@@ -4,7 +4,7 @@ import numpy as np
 from xgboost import XGBClassifier
 import joblib
 
-# ── Key mapping: frontend threshold keys  →  DataFrame column names
+# ── Key mapping: frontend threshold keys  →  DataFrame column names V2
 THRESHOLD_KEY_TO_COLUMN = {
     "sys_bp":      "sys_blood_pressure",
     "dis_bp":      "dis_blood_pressure",
@@ -129,3 +129,4 @@ def train_dynamic_model(thresholds: dict) -> str:
     print(f"[trainer] Model saved → {output_path}")
 
     return output_path
+

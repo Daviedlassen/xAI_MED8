@@ -176,4 +176,3 @@ const AnalysisChart = ({ shapData, loading }) => {
 };
 
 export default AnalysisChart;
-/*push*/

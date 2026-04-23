@@ -1,15 +1,18 @@
 import React, { useMemo, useCallback } from "react";
-/*push*/
-
 
 /* ─────────────────────────────────────────────────────────────
    SLIDER CONFIG
    ───────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────
+   UPDATED SLIDER CONFIG
+   ───────────────────────────────────────────────────────────── */
 const SLIDER_CONFIG = [
+  // Adding NIHSS here makes it interactive!
+  { key: "nihss",       label: "NIHSS Score",     unit: "pts",   min: 0,   max: 42,  singleThreshold: true,  guidelines: "NIH Stroke Scale" },
   { key: "sys_bp",      label: "BP Systolic",     unit: "mmHg",  min: 60,  max: 240, singleThreshold: false, guidelines: "American Heart Association" },
   { key: "dis_bp",      label: "BP Diastolic",    unit: "mmHg",  min: 20,  max: 220, singleThreshold: true,  guidelines: "American Heart Association" },
-  { key: "glucose",     label: "Glucose",         unit: "mg/dL", min: 20,  max: 210, singleThreshold: false, guidelines: "American Heart Association" },
-  { key: "cholesterol", label: "LDL Cholesterol", unit: "mg/dL", min: 0,   max: 190, singleThreshold: false, guidelines: "American Heart Association" },
+  { key: "glucose",     label: "Glucose",         unit: "mg/dL", min: 20,  max: 400, singleThreshold: false, guidelines: "American Heart Association" },
+  { key: "cholesterol", label: "LDL Cholesterol", unit: "mg/dL", min: 0,   max: 300, singleThreshold: false, guidelines: "American Heart Association" },
 ];
 
 const OTHER_CONFIGS = {
@@ -44,8 +47,8 @@ const OTHER_CONFIGS = {
 };
 
 /* ── pure helpers ─────────────────────────────────────────── */
-const pct      = (val, min, max) => Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
-const clamp    = (v, lo, hi)     => Math.max(lo, Math.min(hi, v));
+const pct        = (val, min, max) => Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
+const clamp      = (v, lo, hi)     => Math.max(lo, Math.min(hi, v));
 const buildTicks = (min, max, n = 10) =>
   Array.from({ length: n + 1 }, (_, i) => Math.round(min + (i / n) * (max - min)));
 
@@ -56,6 +59,9 @@ const clientXToVal = (trackEl, min, max, clientX) => {
 
 /* ─────────────────────────────────────────────────────────────
    GAUGE ROW
+   The patient triangle is driven purely by patientVal (read-only).
+   Dragging the threshold handles ONLY updates thresholds — the
+   patient marker never moves as a result of a drag.
    ───────────────────────────────────────────────────────────── */
 const GaugeRow = ({ s, patientVal, low, high, onUpdate }) => {
   const { min, max, singleThreshold } = s;
@@ -74,11 +80,6 @@ const GaugeRow = ({ s, patientVal, low, high, onUpdate }) => {
 
   const ticks = useMemo(() => buildTicks(min, max, 10), [min, max]);
 
-  /*
-   * makeDrag measures the PARENT (full gauge track), not the 28px handle div.
-   * Clamping against the sibling is done inside the functional updater in
-   * makeUpdater (parent), so it always reads latest state.
-   */
   const makeDrag = useCallback((handle) => (e) => {
     e.preventDefault();
     const track = e.currentTarget.parentElement; // full gauge track
@@ -101,15 +102,14 @@ const GaugeRow = ({ s, patientVal, low, high, onUpdate }) => {
       <span className="var-label-bold">{s.label}</span>
 
       <div style={{ display: "flex", alignItems: "stretch", gap: 12, width: "100%" }}>
-        {/* Value box */}
+        {/* Value box — always shows the fixed patient value */}
         <div className="value-display-box-v3" style={{ minWidth: 80 }}>
           <span className={`v-num-v3 ${isAbnormal ? "danger" : "safe"}`}>{patientVal}</span>
           <span className="v-unit-v3">{s.unit}</span>
         </div>
 
-        {/* Gauge + ruler */}
+        {/* Gauge track */}
         <div style={{ flex: 1, position: "relative", paddingBottom: 22 }}>
-          {/* Track — makeDrag measures this via e.currentTarget.parentElement */}
           <div style={{
             position: "relative",
             height: 50,
@@ -119,7 +119,8 @@ const GaugeRow = ({ s, patientVal, low, high, onUpdate }) => {
             overflow: "visible",
             userSelect: "none",
           }}>
-            {/* Patient triangle + stem */}
+
+            {/* Patient triangle + stem — read-only, never moves on drag */}
             <div style={{
               position: "absolute",
               left: `${patPct}%`,
@@ -135,7 +136,7 @@ const GaugeRow = ({ s, patientVal, low, high, onUpdate }) => {
               <div style={{ width:2, height:38, background:"#000" }} />
             </div>
 
-            {/* Low handle (hidden for singleThreshold) */}
+            {/* Low threshold handle */}
             {!singleThreshold && (
               <div
                 onPointerDown={makeDrag("low")}
@@ -148,7 +149,7 @@ const GaugeRow = ({ s, patientVal, low, high, onUpdate }) => {
               </div>
             )}
 
-            {/* High handle */}
+            {/* High threshold handle */}
             <div
               onPointerDown={makeDrag("high")}
               style={{ position:"absolute", left:`${highPct}%`, top:0, height:"100%", width:28, transform:"translateX(-50%)", cursor:"ew-resize", zIndex:8 }}
@@ -183,7 +184,10 @@ const GaugeRow = ({ s, patientVal, low, high, onUpdate }) => {
 /* ─────────────────────────────────────────────────────────────
    MAIN COMPONENT
    ───────────────────────────────────────────────────────────── */
-const InteractableVariables = ({ patientData, thresholds, onChange, onPatientChange, activeCategory }) => {
+const InteractableVariables = ({ patientData, thresholds, onChange, activeCategory }) => {
+  // onPatientChange is intentionally NOT accepted here —
+  // threshold drags must never modify patientData.
+
   const isSliderTab = activeCategory === "top" || activeCategory === "cardio";
 
   const otherList = useMemo(() => {
@@ -192,16 +196,10 @@ const InteractableVariables = ({ patientData, thresholds, onChange, onPatientCha
   }, [activeCategory]);
 
   /*
-   * FIX: onChange is called with a FUNCTIONAL UPDATER so the parent's
-   * handleThresholdsChange (which uses setThresholds(prev => ...)) always
-   * receives a function it can call with the latest prev state.
-   *
-   * We also call onPatientChange here to keep the patient value in sync
-   * with the threshold boundaries (e.g. moving glucose high handle above
-   * the patient value updates the patient's glucose reading too).
+   * makeUpdater only calls onChange (thresholds) — it never touches patientData.
+   * Clamping is done inside the functional updater so it always reads latest state.
    */
   const makeUpdater = useCallback((key, min, max) => (handle, raw) => {
-    // ── 1. Update thresholds via functional updater (fixes the core bug)
     onChange((prev) => {
       const cur = prev[key] || { low: min, high: max };
       const next = handle === "low"
@@ -209,17 +207,7 @@ const InteractableVariables = ({ patientData, thresholds, onChange, onPatientCha
         : { ...cur, high: clamp(raw, cur.low + 1, max)  };
       return { ...prev, [key]: next };
     });
-
-    // ── 2. Mirror the moved threshold value into patientData so the
-    //       triangle marker and value box stay meaningful in real time.
-    //       The patient's reading tracks whichever handle was just moved.
-    if (onPatientChange) {
-      onPatientChange((prev) => ({
-        ...prev,
-        [key]: raw,  // update the continuous value to match the dragged position
-      }));
-    }
-  }, [onChange, onPatientChange]);
+  }, [onChange]);
 
   return (
     <div className="variable-content-module full-container">
@@ -229,14 +217,26 @@ const InteractableVariables = ({ patientData, thresholds, onChange, onPatientCha
 
       <div className="variable-scroll-wrapper stack-layout">
 
-        {/* ── Slider tab (cardio / top) */}
+        {/* Slider tab (cardio / top) */}
         {isSliderTab && SLIDER_CONFIG.map((s) => {
           const { low = s.min, high = s.max } = thresholds[s.key] || {};
+
+          // 1. Get raw value
+          let displayVal = patientData[s.key] ?? 0;
+
+          // 2. Mirror backend unit conversion so the UI triangle matches the mg/dL scale
+          if (s.key === "glucose" && displayVal > 0 && displayVal < 50) {
+            displayVal = Number((displayVal * 18.01).toFixed(1));
+          }
+          if (s.key === "cholesterol" && displayVal > 0 && displayVal < 25) {
+            displayVal = Number((displayVal * 38.67).toFixed(1));
+          }
+
           return (
             <GaugeRow
               key={s.key}
               s={s}
-              patientVal={patientData[s.key] ?? 0}
+              patientVal={displayVal} // Pass the adjusted value here
               low={low}
               high={high}
               onUpdate={makeUpdater(s.key, s.min, s.max)}
@@ -244,7 +244,7 @@ const InteractableVariables = ({ patientData, thresholds, onChange, onPatientCha
           );
         })}
 
-        {/* ── Other tabs — read-only controls */}
+        {/* Other tabs — read-only controls */}
         {!isSliderTab && otherList.map((s, i) => {
           if (s.type === "divider") return <hr key={`div-${i}`} className="med-divider" />;
 

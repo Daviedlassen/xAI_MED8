@@ -6,11 +6,11 @@ import shap
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any
-
 from routers.trainer_engine import train_dynamic_model
-#Push
+
 router = APIRouter(prefix="/api/ml", tags=["Machine Learning"])
 MODEL_DIR = r"C:\Users\Bruger\PycharmProjects\P8Project\backend\model"
+CSV_PATH = os.path.join(MODEL_DIR, "dataREanonymized_long.csv")
 
 
 class PatientData(BaseModel):
@@ -22,119 +22,115 @@ class PatientData(BaseModel):
     glucose: float
     cholesterol: float
     thresholds: Dict[str, Any]
+    extra_features: Dict[str, Any] = {}
 
 
-def get_binned_value(val: float, key: str, thresholds: dict) -> int:
-    """
-    Bin a continuous value into 0 / 1 / 2 using the user-supplied thresholds.
-
-    The threshold dict sent by the frontend uses camelCase-style keys:
-        { "sys_bp": {"low": 110, "high": 220}, "glucose": {...}, ... }
-
-    The map below converts those frontend keys to their backend equivalents
-    so both sides stay in sync.
-    """
-    # Frontend key  →  threshold dict key (what JS sends)
-    FRONTEND_KEY_MAP = {
-        "sys_blood_pressure": "sys_bp",
-        "dis_blood_pressure": "dis_bp",
-        "glucose":            "glucose",
-        "cholesterol":        "cholesterol",
-    }
-    thresh_key = FRONTEND_KEY_MAP.get(key, key)
+def get_binned_value(val: float, thresh_key: str, thresholds: dict) -> int:
     t = thresholds.get(thresh_key, {})
-
-    low  = float(t.get("low",  0))
+    low = float(t.get("low", 0))
     high = float(t.get("high", 999))
-
-    if val < low:
-        return 0
-    if val <= high:
-        return 1
+    if val < low: return 0
+    if val <= high: return 1
     return 2
 
 
-@router.post("/predict_mrs")
-async def predict_mrs(data: PatientData):
+@router.get("/patient/{subject_id}")
+async def get_patient_data(subject_id: str):
     try:
-        # ── 1. Retrain model with updated threshold boundaries
-        print(f"[predict_mrs] Received thresholds: {data.thresholds}")
-        train_dynamic_model(data.thresholds)
+        df_long = pd.read_csv(CSV_PATH, low_memory=False)
+        df_p = df_long[df_long["subject_id"].astype(str) == str(subject_id)]
+        if df_p.empty: raise HTTPException(status_code=404, detail="Patient not found")
 
-        # ── 2. Load fresh model artefact
-        model_path = os.path.join(MODEL_DIR, "live_model.pkl")
-        if not os.path.exists(model_path):
-            raise HTTPException(status_code=500, detail="live_model.pkl was not created by trainer")
+        patient_dict = df_p.set_index("variable")["Value"].to_dict()
+        for k, v in patient_dict.items():
+            try:
+                if str(v).lower() not in ["nan", "none"]:
+                    patient_dict[k] = float(v)
+            except:
+                pass
+        return {"status": "success", "patient": patient_dict}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
-        artefact = joblib.load(model_path)
-        model    = artefact["model"]
-        features = artefact["features"]
-        medians  = artefact.get("medians", {})
 
-        # ── 3. Build patient feature row
-        #    Start with training-set medians so every feature has a value,
-        #    then overwrite with the actual patient values we know.
+@router.post("/debug/predict_verbose")
+async def predict_verbose(data: PatientData):
+    try:
+        # 1. Retrain and get Suggested Thresholds
+        model_path, suggested_t = train_dynamic_model(data.thresholds)
+        art = joblib.load(model_path)
+        model, features, medians = art["model"], art["features"], art["medians"]
+
+        # 2. Preparation & Unit Handling for current patient
+        # If user puts in 7.0 for glucose, we assume mmol/L and convert to ~126 mg/dL
+        adj_glucose = data.glucose * 18.01 if data.glucose < 50 else data.glucose
+        adj_cholesterol = data.cholesterol * 38.67 if data.cholesterol < 25 else data.cholesterol
+
+        # Build feature row from medians first
         row = {f: medians.get(f, 0.0) for f in features}
 
-        # Continuous features → binned exactly as training did
-        row.update({
-            "age":                data.age,
-            "nihss_score":        data.nihss_score,
-            "prestroke_mrs":      data.prestroke_mrs,
-            "sys_blood_pressure": get_binned_value(data.sys_blood_pressure, "sys_blood_pressure", data.thresholds),
-            "dis_blood_pressure": get_binned_value(data.dis_blood_pressure, "dis_blood_pressure", data.thresholds),
-            "glucose":            get_binned_value(data.glucose,            "glucose",            data.thresholds),
-            "cholesterol":        get_binned_value(data.cholesterol,        "cholesterol",        data.thresholds),
-        })
+        # Overlay with real patient data from the GET request
+        for f, v in data.extra_features.items():
+            if f in row and v is not None:
+                try:
+                    row[f] = float(v)
+                except:
+                    pass
 
-        # Debug: show binned patient values
-        print(f"[predict_mrs] Binned patient values → "
-              f"sys_bp={row['sys_blood_pressure']}  "
-              f"dis_bp={row['dis_blood_pressure']}  "
-              f"glucose={row['glucose']}  "
-              f"cholesterol={row['cholesterol']}")
+        # Overlay with active UI sliders (Highest Priority)
+                # Overlay with active UI sliders (Highest Priority)
+                row.update({
+                    "age": float(data.age),
+                    # CHANGED: Use data.nihss_score (from the slider) instead of static record
+                    "nihss_score": float(data.nihss_score),
+                    "prestroke_mrs": float(data.prestroke_mrs),
+
+                    # These are binned (0, 1, 2)
+                    "sys_blood_pressure": float(get_binned_value(data.sys_blood_pressure, "sys_bp", suggested_t)),
+                    "dis_blood_pressure": float(get_binned_value(data.dis_blood_pressure, "dis_bp", suggested_t)),
+                    "glucose": float(get_binned_value(adj_glucose, "glucose", suggested_t)),
+                    "cholesterol": float(get_binned_value(adj_cholesterol, "cholesterol", suggested_t)),
+                })
 
         df = pd.DataFrame([row])[features]
 
-        # ── 4. Predict
+        # 3. Predict
         prediction = int(model.predict(df)[0])
-        print(f"[predict_mrs] Predicted mRS: {prediction}")
+        proba = model.predict_proba(df)[0]
 
-        # ── 5. SHAP
-        explainer  = shap.TreeExplainer(model)
-        sv_output  = explainer.shap_values(df)
+        # 4. SHAP Logic
+        explainer = shap.TreeExplainer(model)
+        sv = explainer.shap_values(df)
 
-        # sv_output is a list (one array per class) for multiclass XGBoost
-        if isinstance(sv_output, list):
-            target_sv = sv_output[prediction]
-        else:
-            target_sv = sv_output
-
+        # Handle multiclass output (list of arrays)
+        target_sv = sv[prediction] if isinstance(sv, list) else sv
         flat_sv = np.array(target_sv).flatten()
 
-        # ── 6. Format SHAP: title-case display names, drop near-zero values
+        # Format feature names for React DISPLAY_NAMES (Title Case)
         all_shap = {
             feat.replace("_", " ").title(): float(val)
             for feat, val in zip(features, flat_sv)
             if abs(val) > 0.0001
         }
 
-        sorted_shap = sorted(all_shap.items(), key=lambda x: abs(x[1]), reverse=True)
-        top_4  = dict(sorted_shap[:4])
-        others = dict(sorted_shap[4:])
-        other_sum = float(np.sum(list(others.values()))) if others else 0.0
+        # Sort and take top 4
+        sorted_s = sorted(all_shap.items(), key=lambda x: abs(x[1]), reverse=True)
+        top_4 = dict(sorted_s[:4])
+        others_list = sorted_s[4:]
+        other_sum = float(np.sum([x[1] for x in others_list])) if others_list else 0.0
 
         return {
-            "status":    "success",
+            "status": "success",
             "mrs_score": prediction,
+            "suggested_thresholds": suggested_t,
+            "probabilities": {f"mRS_{i}": round(float(p), 4) for i, p in enumerate(proba)},
             "shap_values": {
-                "top":        top_4,
-                "other_sum":  other_sum,
-                "all_others": others,
-            },
+                "top": top_4,
+                "other_sum": other_sum,
+                "all_others": dict(others_list)
+            }
         }
-
     except Exception as e:
-        import traceback
+        import traceback;
         traceback.print_exc()
         return {"status": "error", "message": str(e)}

@@ -1,1518 +1,542 @@
-/*V2*/
 :root {
-  --sidebar-width: 360px;
-  --ios-easing: cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-speed: 0.5s;
+  --sidebar-width: 240px;
   --med-blue: #5fa8d3;
   --med-orange: #f28f5d;
-  --danger-bg: #ffe5e5;
-  --safe-bg: #e8f2ff;
 }
 
-.clinical-title { font-size: 24px; font-weight: 800; margin-bottom: 20px; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-.clinical-header-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-  padding: 10px;
-}
-.header-stat { font-size: 14px; }
-.stat-label { font-weight: 700; margin-right: 8px; }
-
-.clinical-var-row {
-  display: flex; /* Key Change: Shift to row layout */
-  align-items: center;
-  gap: 25px; /* Spacing between the value and the gauge */
-  margin-bottom: 30px;
-  width: 100%;
-}
-
-.clinical-var-row-full {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.var-value-stack {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-width: 90px; /* Ensures the gauge starts at the same spot in every row */
-  text-align: center;
-}
-
-.var-header-inline {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.var-name { font-weight: 700; font-size: 16px; display: block; margin-bottom: 8px; }
-.var-controls { display: flex; align-items: center; gap: 20px; }
-
-.value-display-box {
-  background: white;
-  border: 1px solid #d1d1d6;
-  border-radius: 8px;
-  padding: 8px;
-  min-width: 85px;
-  text-align: center;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.v-num { font-size: 26px; font-weight: 800; color: #007aff; }
-.v-unit { font-size: 11px; color: #8e8e93; text-transform: uppercase; }
-
-.slider-container { flex: 1; }
-.clinical-range {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 35px; /* Thicker for the medical look */
-  border-radius: 4px;
-  outline: none;
-  border: 1px solid #c7c7cc;
-}
-
-.clinical-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 2px; height: 45px;
-  background: #333; /* The triangle-style needle */
-  cursor: pointer;
-}
-
-.slider-ticks {
-  display: flex; justify-content: space-between;
-  font-size: 11px; color: #8e8e93; margin-top: 4px;
-}
-
-
-/* --- SHAP Mirrored Chart --- */
-.shap-axis-wrapper { position: relative; padding: 20px 0; }
-.vertical-axis {
-  position: absolute; left: 50%; top: 0; bottom: 0;
-  width: 2px; background: #333; z-index: 2;
-}
-.shap-row-new {
-    display: flex;
-    align-items: center;
-    height: 35px;
-    margin-bottom: 4px;
-    position: relative;
-}
-.shap-label-new {
-    width: 50%;
-    text-align: left;
-    font-size: 0.85rem;
-    padding-right: 15px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex-shrink: 1; /* Prevents labels from squishing the chart */
-}
-.bar-track {
-    width: 60%;
-    height: 100%;
-    position: relative;
-    /* Ensure no borders here to avoid the 'double line' effect */
-    border: none;
-}
-
-.shap-chart-container {
-    position: relative;
-    padding-top: 10px;
-}
-
-.vertical-center-line {
-    position: absolute;
-    left: 71%; /* Mathematically centers the line in the 60% track */
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background-color: #333;
-    z-index: 1;
-}
-
-.bar-fill {
-    height: 18px;
-    top: 50%;
-    transform: translateY(-50%);
-    transition: width 0.3s ease;
-}
-.bar-fill.pos { background: var(--med-blue); border-radius: 0 4px 4px 0; }
-.bar-fill.neg { background: var(--med-orange); border-radius: 4px 0 0 4px; }
-
-.bar-val-text {
-    position: absolute;
-    font-size: 0.75rem;
-    font-weight: bold;
-    top: 0;
-    white-space: nowrap;
-}
-
-.pos .bar-val-text {
-    left: 105%; /* Positioned to the right of the blue bar */
-    color: var(--med-blue);
-}
-
-.neg .bar-val-text {
-    right: 105%; /* Positioned to the left of the orange bar */
-    color: var(--med-orange);
-}
-
-
-.others-scroll-area {
-    max-height: 200px;
-    overflow-y: auto;
-    background: rgba(0,0,0,0.02);
-    border-top: 1px solid #ddd;
-    margin-top: 5px;
-}
-
-/* 1. APP BASE */
+/* ── BASE ── */
 .app-layout {
   display: flex;
   flex-direction: row;
   height: 100vh;
   width: 100vw;
-  background-color: #f2f2f7;
+  background: #f0f0f5;
   overflow: hidden;
-  position: relative;
 }
 
-.dual-slider-container {
-  flex: 1; /* Key Change: Forces the gauge to stretch */
-  position: relative;
-  display: flex;
-  flex-direction: column; /* stacked label above visual bar */
-  justify-content: center;
-  min-height: 70px;
-}
-
-.dashboard-root {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  padding: 0;
-  margin: 0;
-  background-color: #f2f2f7; /* Standard clinical light gray background */
-}
-
-.dashboard-root.locked {
-  border: 2px solid #ff3b30; /* Red border to show it's locked */
-}
-
-.dashboard-main-content {
-  display: flex;
-  flex: 1;
-  padding-top: 20px; /* Slight padding so it's not touching the bezel */
-  gap: 20px;
-}
-
-/* 2. DASHBOARD CANVAS */
 .dashboard-wrapper {
   flex: 1;
-  padding: 20px 0;
   display: flex;
   flex-direction: column;
-  /* CHANGE: Force content to start at the top-left, not center */
-  align-items: flex-start;
-  justify-content: flex-start;
-  overflow-y: auto;
-  overflow-x: hidden;
-  width: 100%;
+  overflow: hidden;
+  padding: 8px 10px;
+  gap: 6px;
+  min-width: 0;
 }
 
-/* 3. SIDEBAR LOGIC */
+/* ── ROW 1: patient info + mRS ── */
+.row-top {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.panel-history {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.06);
+  padding: 10px 14px;
+  min-width: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.panel-mrs {
+  width: 140px;
+  flex-shrink: 0;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 8px;
+  gap: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+/* ── ROW 2: shared tab bar ── */
+.row-tabs {
+  flex-shrink: 0;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.06);
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+/* ── ROW 3: two panels side by side ── */
+.row-main {
+  flex: 1;
+  display: flex;
+  gap: 6px;
+  min-height: 0;
+}
+
+.panel-left,
+.panel-right {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+/* ── SIDEBAR ── */
 .module-sidebar {
   width: var(--sidebar-width);
   height: 100vh;
   background: white;
   border-left: 1px solid #e5e5ea;
   flex-shrink: 0;
-  z-index: 999;
-  position: relative;
-  transition: margin-right var(--transition-speed) var(--ios-easing),
-              visibility var(--transition-speed) var(--ios-easing);
-  margin-right: 0;
-  visibility: visible;
   display: flex;
   flex-direction: column;
+  transition: margin-right 0.3s ease, visibility 0.3s ease;
 }
 
-/* REMOVED: .is-locked .module-sidebar hiding logic. Sidebar stays visible now! */
 .sidebar-closed .module-sidebar {
   margin-right: calc(var(--sidebar-width) * -1);
   visibility: hidden;
 }
 
-/* 4. TOGGLE BUTTON */
 .sidebar-toggle {
   position: fixed;
   top: 50%;
   transform: translateY(-50%);
   z-index: 1001;
   right: var(--sidebar-width);
-  transition: right var(--transition-speed) var(--ios-easing);
-  width: 32px;
-  height: 64px;
+  transition: right 0.3s ease;
+  width: 22px;
+  height: 44px;
   background: white;
   border: 1px solid #e5e5ea;
   border-right: none;
-  border-radius: 14px 0 0 14px;
+  border-radius: 8px 0 0 8px;
   cursor: pointer;
-  box-shadow: -4px 0 15px rgba(0,0,0,0.06);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #8e8e93;
+  font-size: 11px;
 }
 
-.sidebar-closed .sidebar-toggle {
-  right: 0;
-}
-
-/* 5. HEADER */
-.header-area {
-  width: 100%;
-  padding: 0 30px; /* Keep padding here so text isn't touching the wall */
-  box-sizing: border-box;
-}
-
-.header-area h1 { font-weight: 700; color: #1c1c1e; font-size: 28px; }
-.header-area h1 span { color: #007aff; opacity: 0.8; }
-
-.add-container-btn {
-  width: 44px; height: 44px; border-radius: 12px;
-  background: white; border: 1px solid rgba(0,0,0,0.05);
-  font-size: 24px; color: #007aff; cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  transition: 0.2s;
-  display: flex; align-items: center; justify-content: center;
-}
-
-/* 6. LOCK BUTTON */
-.lock-toggle-btn {
-  margin-left: 20px;
-  padding: 8px 18px;
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,0.1);
-  background: white;
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.lock-toggle-btn.active {
-  background: #34c759;
-  color: white;
-  border-color: #34c759;
-  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.2);
-}
-
-/* 7. SCALER & GRID */
-.workspace-scaler {
-  /* CHANGE: Ensure it acts as a container for the grid */
-  display: block;
-  width: 100%;
-  transform-origin: top left;
-  transition: transform 0.5s var(--ios-easing);
-  will-change: transform;
-}
-
-.ios-grid-container {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-  width: 100%;
-  padding: 0 40px; /* Aligns grid items away from screen edges */
-  box-sizing: border-box; /* Ensures padding doesn't break width */
-}
-
-/* 8. LOCK LOGIC (Hiding Clutter in Workspace) */
-.is-locked .drag-handle,
-.is-locked .remove-btn,
-.is-locked .pill,
-.is-locked .striped-drop-zone,
-.is-locked .add-container-btn {
-  display: none !important;
-}
-
-.is-other-item {
-    height: 25px; /* Slightly smaller for the sub-list */
-    opacity: 0.8;
-}
-
-.is-locked .glass-card {
-  cursor: default;
-}
-
-
-
-/* 9. MODULE STYLING */
-.module-card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  background: white;
-  border-radius: 28px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
-}
-
-.grid-item.size-normal {
-  grid-column: span 5;
-}
-.grid-item.risk-score {
-  grid-column: span 2;
-  min-height: 300px;
-}
-.grid-item.size-wide {
-  grid-column: span 3;
-}
-
-/* 10. SIDEBAR TABS & CONTENT */
-.sidebar-tabs {
-  display: flex;
-  border-bottom: 1px solid #e5e5ea;
-  background: #fcfcfc;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 16px 0;
-  border: none;
-  background: none;
-  font-size: 14px;
-  font-weight: 600;
-  color: #8e8e93;
-  cursor: pointer;
-  transition: 0.2s;
-  border-bottom: 2px solid transparent;
-}
-
-.tab-btn.active {
-  color: #007aff;
-  border-bottom-color: #007aff;
-  background: white;
-}
+.sidebar-closed .sidebar-toggle { right: 0; }
 
 .sidebar-content {
-  padding: 30px 24px;
-  flex: 1;
+  padding: 16px 14px;
   overflow-y: auto;
+  flex: 1;
 }
 
 .sidebar-sub {
   color: #8e8e93;
-  font-size: 13px;
-  margin-bottom: 20px;
+  font-size: 11px;
+  margin-bottom: 10px;
 }
 
 .sidebar-item {
-  padding: 18px;
+  padding: 10px 12px;
   background: white;
-  border-radius: 14px;
-  margin-bottom: 12px;
-  cursor: grab;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  transition: 0.2s ease;
-}
-
-.sidebar-item.disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-  box-shadow: none;
-}
-
-/* PRESETS UI */
-.save-preset-btn {
-  width: 100%;
-  padding: 14px;
-  background: #f2f2f7;
-  border: 1px dashed #c7c7cc;
-  border-radius: 12px;
-  color: #007aff;
-  font-weight: 600;
-  cursor: pointer;
-  margin-bottom: 20px;
-  transition: 0.2s;
-}
-
-.save-preset-btn:hover {
-  background: #e5e5ea;
-}
-
-.preset-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: white;
-  border: 1px solid #e5e5ea;
-  border-radius: 14px;
-  margin-bottom: 10px;
-  overflow: hidden;
-}
-
-.preset-load-btn {
-  flex: 1;
-  padding: 16px;
-  background: transparent;
-  border: none;
-  text-align: left;
-  font-weight: 600;
-  color: #1c1c1e;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.preset-load-btn:hover {
-  background: rgba(0, 122, 255, 0.05);
-}
-
-.var-label {
-  display: block;
-  font-weight: 600;
-  font-size: 14px;
-  color: #1c1c1e;
+  border-radius: 10px;
   margin-bottom: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
-.var-label-small {
+/* ── PATIENT HISTORY ── */
+.clinical-header-grid {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  column-gap: 24px;
+  row-gap: 4px;
+  align-items: start;
+}
+
+.header-stat{
   font-size: 13px;
-  font-weight: 600;
-  color: #333;
 }
 
-.var-label-bold {
+.stat-label{
   font-weight: 700;
-  font-size: 14px;
+  margin-right: 4px;
 }
 
-.preset-delete-btn {
-  width: 44px;
-  height: 44px;
-  background: transparent;
-  border: none;
-  border-left: 1px solid #e5e5ea;
-  color: #ff3b30;
-  font-size: 20px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.preset-delete-btn:hover {
-  background: #fff0f0;
-}
-
-.empty-presets {
-  color: #8e8e93;
-  font-size: 14px;
-  text-align: center;
-  margin-top: 20px;
-  font-style: italic;
-}
-
-.gauge-track {
-  position: relative;
-  height: 30px;
-  width: 100%; /* Stretch within flex container */
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  margin-top: 10px; /* Space for labels below */
-  overflow: visible; /* To allow triangle on top */
-}
-
-.patient-marker {
-  position: absolute;
-  top: -8px; /* Offset above visual bar */
-  width: 0; height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 10px solid #000;
-  transform: translateX(-50%);
-}
-
-.patient-val-pill {
-  background: #f2f2f7;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.patient-marker::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -1px;
-  width: 2px;
-  height: 40px;
-  background: rgba(0,0,0,0.5); /* The thin line extending down */
-}
-
-.tick-label {
-  position: absolute;
-  top: 35px; /* Offset below visual bar */
-  font-size: 11px;
-  font-weight: bold;
-  transform: translateX(-50%);
-}
-
-.value-box.critical .v-num {
-  color: #ff3b30;
-}
-.value-box.safe .v-num {
-  color: #007aff;
-}
-
-.clinical-var-row {
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  margin-bottom: 40px;
-  width: 100%;
-}
-
-.var-value-stack {
-  display: flex;
-  flex-direction: column;
-  min-width: 80px;
-  text-align: left;
-}
-
-.v-num {
-  font-size: 32px;
-  font-weight: 800;
-  color: #007aff;
-  line-height: 1;
-}
-
-.v-num.critical {
-  color: #ff3b30;
-}
-
-.v-unit {
-  font-size: 12px;
-  color: #8e8e93;
-  font-weight: 600;
-  margin-top: 4px;
-}
-
-.dual-slider-container {
-  flex: 1; /* This makes the bar stretch */
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-.dual-slider-container-full {
-  position: relative;
-  width: 100%;
-  height: 40px;
-}
-
-.var-label {
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.gauge-track {
-  position: relative;
-  height: 35px;
-  width: 100%;
-  border-radius: 8px;
-  border: 1px solid #e5e5ea;
-}
-
-.gauge-track-wide {
-  position: absolute;
-  top: 10px;
-  left: 0;
-  width: 100%;
-  height: 20px;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-}
-
-.thumb-input-wide {
-  position: absolute;
-  width: 100%;
-  top: 0;
-  left: 0;
-  appearance: none;
-  background: none;
-  pointer-events: none;
-}
-
-.thumb-input-wide::-webkit-slider-thumb {
-  appearance: none;
-  pointer-events: auto;
-  width: 20px;
-  height: 30px;
-  background: #333;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.patient-marker {
-  position: absolute;
-  top: -12px;
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 12px solid #000;
-  transform: translateX(-50%);
-  z-index: 3;
-}
-
-.tick-label {
-  position: absolute;
-  top: 40px;
-  font-size: 11px;
-  font-weight: 800;
-  transform: translateX(-50%);
-}
-
-.thumb-input {
-  position: absolute;
-  top: 25px; /* Aligned with track */
-  width: 100%;
-  pointer-events: none;
-  appearance: none;
-  background: none;
-  z-index: 4;
-}
-
-.thumb-input::-webkit-slider-thumb {
-  appearance: none;
-  pointer-events: auto;
-  width: 16px;
-  height: 40px;
-  background: #333;
-  border-radius: 4px;
-  border: 2px solid white;
-  cursor: ew-resize;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-/* Picture 2 & 3: Button Groups */
-.ios-toggle-group {
-  display: flex;
-  background: #f2f2f7;
-  border-radius: 8px;
-  padding: 2px;
-}
-
-.ios-pill-btn {
-  flex: 1;
-  border: none;
-  background: transparent;
-  padding: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  border-radius: 6px;
-}
-
-.ios-pill-btn.active {
-  background: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  color: #007aff;
-}
-
-/* Picture 2: Numeric Input Box */
-.ios-input-wrapper {
-  display: flex;
-  align-items: center;
-  border: 1px solid #555557;
-  border-radius: 8px;
-  width: fit-content;
-  padding: 4px 12px;
-  background: white;
-}
-
-.ios-num-input {
-  border: none;
-  font-size: 18px;
-  font-weight: 700;
-  width: 50px;
-  outline: none;
-}
-
-.input-unit {
-  font-weight: 700;
+.stat-value{
   color: #1c1c1e;
 }
 
-/* Layout override for non-slider rows */
-.full-width-control {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
+/* ── MRS SCORE ── */
+.loading-container { position: relative; }
 
-.full-container {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  box-sizing: border-box;
-}
-
-.fixed-height-module {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden; /* Prevents the whole box from growing */
-}
-
-.variable-grid-area {
-  flex: 1;
-  overflow-y: auto; /* Adds the internal scrollbar */
-  padding-right: 10px;
-  display: grid;
-  gap: 15px;
-}
-
-.variable-scroll-wrapper {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  align-items: stretch; /* Prevents centering/squishing */
-}
-
-.variable-scroll-wrapper.grid-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-content: start;
-}
-
-.variable-grid-area.two-column {
-  grid-template-columns: 1fr 1fr;
-  align-content: start;
-}
-
-.variable-grid-area.one-column {
-  grid-template-columns: 1fr;
-}
-
-.variable-control-block {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-/* --- METRICS: Discrete Scale Boxes --- */
-.discrete-box-group {
-  display: flex;
-  width: 100%;       /* Spans the full width of the column */
-  gap: 8px;          /* Matches the spacing in your design */
-  margin-top: 6px;
-}
-
-.discrete-btn {
-  flex: 1;           /* Forces all buttons to grow equally to fill the space */
-  height: 40px;      /* Slightly taller for better touch/click targets */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.75);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #d1d1d6;
-  background: #EAEAEAFF;
-  border-radius: 4px;
+  z-index: 20;
+  border-radius: 12px;
+}
+
+.spinner {
+  width: 20px; height: 20px;
+  border: 2.5px solid var(--med-blue);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.content-loading-blur {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* ── TABS ── */
+.tab-scroll-wrapper {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-wrap: nowrap;
+}
+
+.tab-scroll-wrapper::-webkit-scrollbar { display: none; }
+
+.v-tab{
+  padding: 7px 12px;
+  border-radius: 12px;
+  border: 1px solid #e5e5ea;
+  background: white;
+  font-size: 15px;
   font-weight: 700;
-  font-size: 16px;
+  color: #636366;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.v-tab.active{
+  background: #dfe4ea;
+  border-color: #c9ccd2;
+  color: #1c1c1e;
+}
+
+/* ── CHANGEABLE VARIABLES ── */
+.panel-left-inner {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: thin;
+}
+
+.panel-title{
+  font-size: 18px;
+  font-weight: 800;
+  padding: 14px 16px 6px;
+}
+
+/* Compact gauge row */
+.gauge-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.gauge-row-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #000;
+}
+
+.gauge-row-inner {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.value-box {
+  width: 62px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d1d1d6;
+  border-radius: 6px;
+  padding: 4px 0;
+}
+
+.v-num-v3 {
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.v-num-v3.safe   { color: #82b9e6; }
+.v-num-v3.danger { color: #fc9fa7; }
+
+.v-unit-v3 {
+  font-size: 10px;
+  font-weight: 700;
+  color: #333;
+}
+
+.gauge-track-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.gauge-track {
+  position: relative;
+  height: 32px;
+  border-radius: 5px;
+  border: 1px solid #d1d1d6;
+  overflow: visible;
+  user-select: none;
+}
+
+.gauge-ticks {
+  position: relative;
+  height: 14px;
+  margin-top: 1px;
+}
+
+.gauge-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gauge-tick-line {
+  width: 1px;
+  height: 4px;
+  background: #bbb;
+}
+
+.gauge-tick-label {
+  font-size: 9px;
+  color: #8e8e93;
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.guideline-text {
+  font-size: 10px;
+  font-weight: 600;
+  color: #000;
+  text-decoration: underline;
+  margin: 0;
+}
+
+.guideline-icon { color: #8e8e93; font-size: 9px; }
+
+/* Other tab controls */
+.other-controls-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scrollbar-width: thin;
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.control-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.segmented-toggle-group {
+  display: flex;
+  border: 1px solid #d1d1d6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.segmented-btn {
+  padding: 4px 10px;
+  background: #eaeaea;
+  border: none;
+  font-weight: 700;
+  font-size: 11px;
   color: #1c1c1e;
   cursor: pointer;
-  transition: background-color 0.1s;
 }
 
-.discrete-btn.active {
-  background: #d1d1d6;
-  border-color: #d1d1d6;
-}
+.segmented-btn.active { background: #616165; color: white; }
 
-.sub-labels {
+.discrete-box-group {
   display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: #8e8e93;
-  font-weight: 700;
-  margin-top: 6px;
-  width: 100%;
+  gap: 3px;
 }
 
-/* --- METRICS: Input Box --- */
-.styled-num-input {
-  border: none;
-  font-size: 16px;
+.discrete-btn {
+  width: 28px;
+  height: 26px;
+  border: 1px solid #d1d1d6;
+  background: #eaeaea;
+  border-radius: 4px;
   font-weight: 700;
-  width: 45px; /* Increased from 25px to fit 3+ digits */
-  outline: none;
-  padding: 0;
+  font-size: 12px;
   color: #1c1c1e;
-  text-align: center; /* Centers the number for better aesthetics */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.styled-num-input-box.locked {
-  background-color: #f2f2f7;
-  border-color: #d1d1d6;
-}
+.discrete-btn.active { background: #d1d1d6; }
 
 .styled-num-input-box {
   display: flex;
   align-items: center;
-  border: 1px solid #EAEAEAFF;
-  border-radius: 4px;
-  padding: 6px 10px; /* Adjusted padding */
-  width: fit-content; /* Container grows with content */
-  gap: 6px;
-  margin-top: 6px;
-  background: white;
-  min-width: 80px; /* Ensures a consistent base size */
-}
-
-.styled-num-unit {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1c1c1e;
-}
-
-/* --- MEDICATIONS: Segmented Toggles --- */
-.segmented-toggle-group {
-  display: flex;
-  border: 1px solid #EAEAEAFF;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-top: 6px;
-}
-
-.segmented-btn {
-  flex: 1;
-  padding: 6px 0;
-  background: #eaeaea;
-  border: none;
-  font-weight: 700;
-  font-size: 13px;
-  color: #1c1c1e;
-  cursor: pointer;
-  transition: 0.1s;
-}
-
-.segmented-btn.active {
-  background: #616165; /* Matches the flat gray in the UI */
-}
-
-/* --- MEDICATIONS: Divider Line --- */
-.med-divider {
-  grid-column: 1 / -1; /* Spans across both columns in the grid */
-  border: none;
-  border-top: 1px solid #1c1c1e;
-  margin: 10px 0;
-  width: 100%;
-}
-
-/* Ensure the header text uses the standard clinical bold look */
-.clinical-title {
-  font-size: 32px;
-  font-weight: 800;
-  margin: 0 0 24px 0;
-  color: #000;
-}
-
-/* Styling for Read Only state */
-.read-only-view .discrete-btn,
-.read-only-view .segmented-btn {
-  cursor: default; /* Remove pointer */
-}
-
-.read-only .discrete-btn,
-.read-only .segmented-btn {
-  cursor: default;
-}
-
-/* Make the disabled input box look like a static label */
-.styled-num-input-box.disabled {
-  background-color: #f2f2f7;
-  border-color: #d1d1d6;
-}
-
-.styled-num-input-box.disabled input {
-  background: transparent;
-  cursor: default;
-}
-
-/* Change 'active' color for Read-Only to be slightly more subtle or standard gray */
-.read-only-view .active {
-  background-color: #464649 !important; /* A darker gray to show it's set but not 'live' */
-  color: white;
-}
-
-.read-only .active {
-  background-color: #d1d1d6 !important;
-  color: #1c1c1e;
-}
-
-.clinical-var-row-full.interactable {
-  opacity: 1;
-}
-
-.control-block-full.read-only {
-  cursor: default;
-}
-
-/* --- 1:1 CLINICAL UI MATCH --- */
-.clinical-var-row-full-wide {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.clinical-gauge-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  position: relative;
-  width: 100%;
-}
-
-/* Value Box */
-.value-display-box {
-  width: 110px;
-  height: 90px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,0.1);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  background: white;
-}
-
-.value-display-box.val-info .v-num { color: #5fa8d3; } /* Medical Blue */
-.value-display-box.val-danger .v-num { color: #ff3b30; } /* Danger Red */
-
-.v-num {
-  font-size: 42px;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.v-unit {
-  font-size: 14px;
-  font-weight: 600;
-  color: #212123;
-  margin-top: 4px;
-}
-
-/* Gauge Track - stretched */
-.gauge-track-wide {
-  position: relative;
-  flex: 1; /* Stretch to fill space */
-  height: 60px;
-  border-radius: 8px;
   border: 1px solid #d1d1d6;
-  overflow: visible; /* To allow triangle on top */
-}
-
-/* Patient Triangle Marker */
-.patient-triangle {
-  position: absolute;
-  top: -12px;
-  width: 0;
-  height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 15px solid #000;
-  transform: translateX(-50%);
-  z-index: 5;
-}
-
-/* Tick Marks & Labels */
-.tick-label {
-  position: absolute;
-  top: -18px; /* Offset above visual bar */
-  font-size: 11px;
-  font-weight: 800;
-  transform: translateX(-50%);
-  color: #000;
-}
-
-/* Stretched Thumb Inputs */
-.thumb-input-wide {
-  position: absolute;
-  left: 125px; /* Offset for the Value Box */
-  top: -10px;
-  width: calc(100% - 125px); /* Shrink width by Value Box size */
-  pointer-events: none;
-  appearance: none;
-  background: none;
-  height: 60px; /* Aligned with track */
-}
-
-/* Tick lines extending down */
-.low-tick, .high-tick {
-  position: absolute;
-  top: 0;
-  width: 1px;
-  height: 60px;
-  background: rgba(0,0,0,0.3);
-}
-
-/* Guideline Text */
-.guideline-text {
-  font-size: 12px;
-  font-weight: 700;
-  color: #000;
-  text-decoration: underline;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.guideline-text span { font-weight: 800; }
-.guideline-icon { color: #8e8e93; font-size: 10px; }
-
-/* --- Direct-Drag Clinical Gauge --- */
-.var-header-inline {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.inline-value-text {
-  font-size: 28px;
-  font-weight: 800;
-}
-.inline-value-text.safe { color: var(--med-blue); }
-.inline-value-text.danger { color: #ff3b30; }
-.inline-value-text small { font-size: 14px; color: #8e8e93; margin-left: 4px; }
-
-.clinical-gauge-wrapper-direct {
-  position: relative;
-  width: 100%;
-  height: 85px; /* Height to accommodate labels above and below */
-  display: flex;
-  align-items: center;
-}
-
-.gauge-track-v2 {
-  position: relative;
-  width: 100%;
-  height: 40px;
-  border-radius: 6px;
-  border: 1px solid #d1d1d6;
-  margin-top: 15px;
-}
-
-/* Draggable Line Handles */
-.threshold-line-handle {
-  position: absolute;
-  top: -22px; /* Pull label above track */
-  height: 65px; /* Line goes through track */
-  width: 30px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transform: translateX(-50%);
-  pointer-events: none; /* Let slider overlay handle the drag */
-  z-index: 5;
-}
-
-.handle-value-label {
-  font-size: 12px;
-  font-weight: 800;
-  color: #000;
+  border-radius: 4px;
+  padding: 3px 6px;
   background: #f2f2f7;
-  padding: 1px 4px;
-  border-radius: 3px;
-  margin-bottom: 2px;
+  gap: 3px;
 }
 
-.line-visual {
-  width: 2px;
-  height: 100%;
-  background: #000;
-}
-
-/* Patient Position */
-.patient-triangle-v2 {
-  position: absolute;
-  top: 6px;
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 12px solid #000;
-  transform: translateX(-50%);
-  z-index: 4;
-}
-
-/* Overlay Inputs */
-.hidden-slider-overlay {
-  position: absolute;
-  width: 100%;
-  height: 40px;
-  bottom: 0;
-  left: 0;
-  margin: 0;
-  opacity: 0;
-  cursor: ew-resize;
-  pointer-events: auto;
-  z-index: 10;
-}
-
-.track-edge-label {
-  position: absolute;
-  bottom: -18px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #8e8e93;
-}
-.track-edge-label.min { left: 0; }
-.track-edge-label.max { right: 0; }
-
-/* Read-Only State Polish */
-.read-only .active {
-  background-color: #636366 !important; /* Darker clinical grey */
-  color: white !important;
-}
-
-.locked input {
+.styled-num-input {
+  border: none;
   background: transparent;
-  pointer-events: none;
+  font-size: 13px;
+  font-weight: 700;
+  width: 36px;
+  outline: none;
+  text-align: center;
 }
 
-/* --- Cardio Row Layout --- */
-.clinical-var-row-full-wide {
+.styled-num-unit { font-size: 12px; font-weight: 700; color: #1c1c1e; }
+
+.med-divider {
+  border: none;
+  border-top: 1px solid #d1d1d6;
+  margin: 2px 0;
+}
+
+/* ── SHAP CHART ── */
+.shap-inner {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  scrollbar-width: thin;
+}
+
+.shap-axis-container {
+  position: relative;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 24px;
 }
 
-.var-label-bold {
-  font-weight: 800;
-  font-size: 15px;
-  color: #000;
-}
-
-.var-label-small {
-  font-size: 14px;
-  font-weight: 700;
-  color: #000;
-  margin-bottom: 4px;
-}
-
-.clinical-gauge-wrapper-direct {
-  display: flex;
-  align-items: stretch;
-  gap: 15px;
-  width: 100%;
-}
-
-/* --- Left Side: Value Box --- */
-.value-display-box-v3 {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 90px;
-  background: white;
-  border: 1px solid #d1d1d6;
-  border-radius: 6px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-  padding: 8px 0;
-  flex-shrink: 0;
-}
-
-.v-num-v3 {
-  font-size: 32px;
-  font-weight: 900;
-  line-height: 1.1;
-  /* Simulating the outlined text look from your image */
-  -webkit-text-stroke: 1px currentColor;
-}
-.v-num-v3.safe { color: #82b9e6; } /* Light blue */
-.v-num-v3.danger { color: #fc9fa7; } /* Pink/Red */
-
-.v-unit-v3 {
-  font-size: 13px;
-  font-weight: 700;
-  color: #000;
-}
-
-/* --- Right Side: Gauge Track --- */
-.gauge-track-v3 {
-  flex: 1;
-  position: relative;
-  background: #fff;
-  border-radius: 4px;
-  border: 1px solid #d1d1d6;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-  display: flex;
-  align-items: flex-end;
-  height: 60px; /* Adjust based on preference */
-}
-
-.gauge-bg-zones {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.7; /* Makes the background colors softer */
-}
-
-/* Ruler line at the very bottom of the track */
-.gauge-ruler-base {
-  position: absolute;
-  bottom: 10px;
-  left: 5%;
-  width: 90%;
-  height: 1px;
-  background: #8e8e93;
-}
-
-/* --- Dotted Threshold Handles --- */
-.threshold-dotted-line {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  width: 1px;
-  border-left: 1.5px dashed #000;
-  transform: translateX(-50%);
-  pointer-events: none;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dotted-label {
-  font-size: 13px;
-  font-weight: 800;
-  color: #000;
-  background: transparent;
-  /* Position the number slightly above the center line */
-  transform: translateY(-10px);
-}
-
-/* --- Patient Indicator --- */
-.patient-marker-v3 {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transform: translateX(-50%);
-  z-index: 6;
-}
-
-.triangle-down {
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 12px solid #000;
-}
-
-.marker-line {
-  width: 2px;
-  flex: 1;
-  background: #000;
-}
-
-/* Edge numbers (min / max) */
-.edge-label-v3 {
-  position: absolute;
-  bottom: 12px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #000;
-}
-.edge-label-v3.min { left: 5px; }
-.edge-label-v3.max { right: 5px; }
-
-/* Interactive hidden sliders */
-.hidden-slider-overlay-v3 {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  margin: 0;
-  opacity: 0;
-  cursor: ew-resize;
-  pointer-events: auto;
-  z-index: 10;
-}
-
-/* Guideline text formatting */
-.guideline-text {
-  font-size: 13px;
-  font-weight: 700;
-  color: #000;
-  text-decoration: underline;
-  margin-top: 2px;
-}
-
-.gauge-bg-zones,
-.patient-marker-v3,
-.threshold-dotted-line,
-.gauge-ruler-base {
-  pointer-events: none; /* This allows clicks to pass through to the gauge-track-v3 */
-}
-
-/* --- SHAP Enlarged & Centered Version --- */
-.shap-viz-container {
-    width: 100%;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-.shap-grid-body {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 12px; /* Increased gap to enlarge the vertical feel */
-}
-
-/* THE FIX: Vertical line is now centered ONLY in the right 65% of the container */
 .vertical-axis-line {
-    position: absolute;
-    right: 32.5%; /* Centers it exactly in the middle of the 65% track */
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background-color: #000;
-    z-index: 1;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-0.75px);
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  background: #000;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .shap-row-new {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    min-height: 40px; /* Taller rows to enlarge chart */
-    position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  position: relative;
 }
 
+.is-other-item { min-height: 22px; opacity: 0.75; }
+
 .shap-label-column {
-    width: 35%; /* Fixed space for text */
-    font-size: 14px;
-    font-weight: 600;
-    color: #333;
-    padding-right: 20px;
-    text-align: left;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  width: 35%;
+  font-size: 11px;
+  font-weight: 600;
+  color: #333;
+  padding-right: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 
 .shap-track-column {
-    width: 70%; /* Fixed space for bars */
-    height: 100%;
-    position: relative;
-    display: flex;
-    align-items: center;
-    z-index: 0;
+  width: 65%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .bar-fill {
-    position: absolute;
-    height: 30px; /* Thicker bars */
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 2;
+  position: absolute;
+  height: 14px;
+  transition: width 0.35s ease;
+  z-index: 2;
 }
 
 .bar-fill.pos { background: #5fa8d3; border-radius: 0 4px 4px 0; }
 .bar-fill.neg { background: #f28f5d; border-radius: 4px 0 0 4px; }
 
-/* Positioning the numbers outside the bars */
 .bar-val-text {
-    position: absolute;
-    font-size: 12px;
-    font-weight: 800;
-    top: 50%;
-    transform: translateY(-50%);
+  position: absolute;
+  font-size: 10px;
+  font-weight: 800;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
 }
 
-.val-pos { left: calc(100% + 8px); color: #5fa8d3; }
-.val-neg { right: calc(100% + 8px); color: #f28f5d; }
+.val-pos { left: calc(100% + 5px); color: #5fa8d3; }
+.val-neg { right: calc(100% + 5px); color: #f28f5d; }
 
-.summary-label {
-    cursor: pointer;
-    color: #666;
-    text-decoration: underline;
-}
+.summary-label { cursor: pointer; color: #666; text-decoration: underline; }
+.other-summary-row { cursor: pointer; border-top: 1px solid #eee; padding-top: 4px; }
 
 .others-expanded-list {
-    background: #f9f9f9;
-    border-radius: 8px;
-    padding: 10px 0;
-    margin-top: -10px;
-}
-
-/* --- LOADING OVERLAY --- */
-.loading-container {
-    position: relative; /* Context for the absolute overlay */
-}
-
-.loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(2px); /* Subtle iOS-style blur */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 20;
-    border-radius: 24px; /* Matches your card radius */
-    transition: opacity 0.3s ease;
-}
-
-/* The Spinner Animation */
-.spinner {
-    width: 30px;
-    height: 30px;
-    border: 3px solid var(--med-blue);
-    border-top-color: transparent;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Optional: Fade out the content while loading */
-.content-loading-blur {
-    opacity: 0.4;
-    pointer-events: none;
-    filter: grayscale(0.5);
+  background: #f9f9f9;
+  border-radius: 6px;
+  padding: 4px 0;
 }
 

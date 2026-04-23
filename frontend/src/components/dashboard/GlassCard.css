@@ -1,94 +1,43 @@
-/*V1*/ /*V2*/
 .glass-card {
   background: white;
-  border-radius: 28px;
-  border: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* This keeps the "corners" clean */
+  overflow: hidden;
   height: 100%;
-  min-width: 0; /* Add this */
+  min-width: 0;
 }
 
 .glass-card.is-over {
-  background: rgba(0, 122, 255, 0.05);
+  background: rgba(0, 122, 255, 0.04);
   border: 1px solid rgba(0, 122, 255, 0.2);
 }
 
 .glass-header {
-  padding: 12px 16px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  height: 32px;
-}
-
-.drag-handle {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 60px;
-  height: 100%;
-  cursor: grab;
-}
-
-.pill {
-  width: 36px;
-  height: 5px;
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-}
-
-.glass-close-btn, .glass-size-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-25%);
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.05);
-  border: none;
-  color: #8e8e93;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  z-index: 10;
-}
-
-.glass-close-btn { right: 12px; font-size: 16px; }
-.glass-size-btn { left: 12px; font-size: 14px; }
-
-.glass-close-btn:hover, .glass-size-btn:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: #1c1c1e;
+  display: none;
 }
 
 .glass-inner {
   flex: 1;
-  padding: 24px;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Add this to force center children */
-  justify-content: center; /* Add this */
   width: 100%;
   box-sizing: border-box;
-  overflow: hidden; /* Prevent the circle from "poking out" */
+  overflow: hidden;
+  padding: 0;
 }
 
 .striped-drop-zone {
-  height: 100%; width: 100%; border: 2px dashed rgba(0, 0, 0, 0.08);
-  border-radius: 16px; display: flex; align-items: center; justify-content: center;
-  background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0, 0, 0, 0.015) 10px, rgba(0, 0, 0, 0.015) 20px);
+  height: 100%; width: 100%;
+  border: 2px dashed rgba(0,0,0,0.08);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.015) 10px, rgba(0,0,0,0.015) 20px);
 }
 
 .drop-content { display: flex; flex-direction: column; align-items: center; color: #a1a1a6; font-size: 13px; font-weight: 500; }
 .drop-plus { font-size: 24px; margin-bottom: 4px; opacity: 0.4; }
 
-.is-locked .pill,
-.is-locked .glass-header {
-  display: none;
-}
+.drag-handle, .pill, .glass-close-btn, .glass-size-btn { display: none !important; }

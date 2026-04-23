@@ -1,13 +1,12 @@
-
 import React from "react";
-/*push*/
+
 const TabModule = ({ activeCategory, onCategoryChange }) => {
   const categories = [
-    { id: "top", label: "Top Contributors" },
-    { id: "cardio", label: "Cardiometabolic" },
+    { id: "top",       label: "Top Contributors" },
+    { id: "cardio",    label: "Cardiometabolic markers" },
     { id: "metabolic", label: "Metrics" },
-    { id: "med", label: "Medication" },
-    { id: "other", label: "Other" }
+    { id: "med",       label: "Discharge Medication" },
+    { id: "other",     label: "Other" },
   ];
 
   return (
@@ -16,7 +15,7 @@ const TabModule = ({ activeCategory, onCategoryChange }) => {
         {categories.map((cat) => (
           <button
             key={cat.id}
-            className={`v-tab ${activeCategory === cat.id ? 'active' : ''}`}
+            className={`v-tab ${activeCategory === cat.id ? "active" : ""}`}
             onClick={() => onCategoryChange(cat.id)}
           >
             {cat.label}

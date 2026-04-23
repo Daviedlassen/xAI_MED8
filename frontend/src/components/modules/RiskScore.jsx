@@ -28,88 +28,64 @@ const RiskScore = ({ score, loading, patientData, thresholds, shapData }) => {
   const isGoodOutcome = score <= 2;
 
   return (
-    <div className="full-container loading-container" style={{ gap: 0 }}>
+    <div className="full-container loading-container" style={{ gap: 0, alignItems: 'center', justifyContent: 'center' }}>
       {loading && (
         <div className="loading-overlay">
           <div className="spinner" />
         </div>
       )}
 
-      {/* Score hero */}
+      {/* Score circle */}
       <div style={{
-        flex: 1,
+        width: 80,
+        height: 80,
+        borderRadius: '50%',
+        border: `5px solid ${currentColor}`,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '12px',
-        padding: '20px 0',
+        background: `${currentColor}20`,
+        transition: 'all 0.4s ease',
       }}>
-        <div style={{
-          width: 120,
-          height: 120,
-          borderRadius: '50%',
-          border: `6px solid ${currentColor}`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: `0 0 20px ${currentColor}66`,
-          background: `${currentColor}15`,
-          transition: 'all 0.4s ease',
-        }}>
-          <span style={{ fontSize: 64, fontWeight: 900, color: '#333', lineHeight: 1 }}>
-            {score}
-          </span>
-        </div>
-
-        <div style={{ textAlign: 'center' }}>
-          <span style={{
-            display: 'inline-block',
-            padding: '4px 14px',
-            borderRadius: 20,
-            background: isGoodOutcome ? '#C2EFB388' : '#F8A8A888',
-            color: '#444',
-            fontWeight: 700,
-            fontSize: 13,
-          }}>
-            mRS {score}
-          </span>
-          <p style={{ fontSize: 13, color: '#555', marginTop: 8, fontWeight: 600 }}>
-            {label}
-          </p>
-        </div>
+        <span style={{ fontSize: 36, fontWeight: 900, color: '#1c1c1e', lineHeight: 1 }}>
+          {score}
+        </span>
+        <span style={{ fontSize: 10, fontWeight: 700, color: '#636366', marginTop: 1 }}>
+          mRS
+        </span>
       </div>
 
-      {/* Debug / verification panel */}
-      <div style={{ padding: '0 16px 16px' }}>
+      <p style={{
+        fontSize: 11,
+        fontWeight: 600,
+        color: '#636366',
+        textAlign: 'center',
+        margin: '6px 0 0',
+        padding: '0 8px',
+      }}>
+        {label}
+      </p>
+
+      {/* Debug panel */}
+      <div style={{ width: '100%', padding: '6px 8px 0', boxSizing: 'border-box' }}>
         <button
           onClick={() => setDebugOpen(d => !d)}
           style={{
-            fontSize: 11,
-            padding: '3px 10px',
-            borderRadius: 6,
-            border: '1px solid #ccc',
-            background: 'transparent',
-            cursor: 'pointer',
-            color: '#888',
-            width: '100%',
+            fontSize: 10, padding: '2px 8px', borderRadius: 4,
+            border: '1px solid #ddd', background: 'transparent',
+            cursor: 'pointer', color: '#aaa', width: '100%',
           }}
         >
-          {debugOpen ? '▲ Hide verification' : '▼ Show verification'}
+          {debugOpen ? '▲ hide' : '▼ verify'}
         </button>
-
         {debugOpen && (
           <div style={{
-            marginTop: 8,
-            fontFamily: 'monospace',
-            fontSize: 11,
-            padding: 12,
-            background: '#f7f7f7',
-            borderRadius: 8,
-            border: '1px solid #e0e0e0',
-            overflowX: 'auto',
+            marginTop: 6, fontFamily: 'monospace', fontSize: 10,
+            padding: 8, background: '#f7f7f7', borderRadius: 6,
+            border: '1px solid #e0e0e0', overflowX: 'auto',
           }}>
-            <div style={{ marginBottom: 8, color: '#555', fontWeight: 700 }}>Sent to model</div>
+            <div style={{ fontWeight: 700, marginBottom: 4, color: '#555' }}>Sent to model</div>
             <pre style={{ margin: 0 }}>{JSON.stringify({
               age:                patientData?.age,
               nihss_score:        patientData?.nihss,
@@ -120,12 +96,10 @@ const RiskScore = ({ score, loading, patientData, thresholds, shapData }) => {
               cholesterol:        patientData?.cholesterol,
               thresholds,
             }, null, 2)}</pre>
-
-            <div style={{ margin: '10px 0 4px', color: '#555', fontWeight: 700 }}>
-              Predicted mRS: <span style={{ color: '#222' }}>{score}</span> — {label}
+            <div style={{ margin: '6px 0 2px', fontWeight: 700, color: '#555' }}>
+              mRS {score} — {label}
             </div>
-
-            <div style={{ marginBottom: 4, color: '#555', fontWeight: 700 }}>Top SHAP factors</div>
+            <div style={{ fontWeight: 700, color: '#555', marginBottom: 2 }}>Top SHAP</div>
             <pre style={{ margin: 0 }}>{JSON.stringify(shapData?.top ?? {}, null, 2)}</pre>
           </div>
         )}

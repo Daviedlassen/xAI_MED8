@@ -146,15 +146,40 @@ const Dashboard = () => {
   return (
     <div className={`app-layout ${!isSidebarOpen ? "sidebar-closed" : ""}`}>
 
-      {/* ── MAIN CONTENT ── */}
       <main className="dashboard-wrapper">
 
-        {/* ROW 1: patient info + mRS */}
-        <div className="row-top">
-          <div className="panel-history">
-            <PatientHistory rows={selectedPatient?.info ?? []} />
+        {/* ── TOP SECTION: Info + Tabs (Left) | mRS (Right) ── */}
+        <div className="header-section">
+
+          <div className="header-left-col">
+            {/* Top Left: Info Card */}
+            <div className="info-card">
+              <PatientHistory rows={selectedPatient?.info ?? []} />
+            </div>
+
+            {/* Bottom Left: Tabs & Dropdown */}
+            <div className="tab-row-container">
+              <div className="tab-strip">
+                <TabModule
+                  activeCategory={activeVariableCategory}
+                  onCategoryChange={setActiveVariableCategory}
+                />
+              </div>
+
+              <div className="changeable-box">
+                Changeable, not actionable
+                <span style={{ marginLeft: "8px", fontWeight: "900" }}>⌄</span>
+              </div>
+            </div>
           </div>
-          <div className="panel-mrs loading-container">
+
+          {/* Right Side: mRS Card spanning full height */}
+          <div className="mrs-card loading-container">
+            {loading && (
+              <div className="loading-overlay">
+                <div className="spinner" />
+              </div>
+            )}
             <RiskScore
               score={mrsScore}
               loading={loading}
@@ -163,18 +188,11 @@ const Dashboard = () => {
               shapData={shapData}
             />
           </div>
+
         </div>
 
-        {/* ROW 2: single shared tab bar */}
-        <div className="row-tabs">
-          <TabModule
-            activeCategory={activeVariableCategory}
-            onCategoryChange={setActiveVariableCategory}
-          />
-        </div>
-
-        {/* ROW 3: variables + SHAP side by side */}
-        <div className="row-main">
+        {/* ── ROW 3: main content ── */}
+        <div className="content-row">
           <div className="panel-left">
             <InteractableVariables
               patientData={patientData}
@@ -190,7 +208,6 @@ const Dashboard = () => {
 
       </main>
 
-      {/* ── SIDEBAR ── */}
       <button className="sidebar-toggle" onClick={() => setIsSidebarOpen(o => !o)}>
         {isSidebarOpen ? "›" : "‹"}
       </button>

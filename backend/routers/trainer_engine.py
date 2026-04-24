@@ -4,6 +4,9 @@ import numpy as np
 from xgboost import XGBClassifier
 import joblib
 
+_MODEL_CACHE: dict | None = None
+_CACHE_KEY:   str  | None = None
+
 THRESHOLD_KEY_TO_COLUMN = {
     "sys_bp":      "sys_blood_pressure",
     "dis_bp":      "dis_blood_pressure",
@@ -15,6 +18,17 @@ ORDINAL_THRESHOLDS = [0, 1, 2, 3, 4, 5]
 
 
 def train_dynamic_model(thresholds: dict) -> tuple:
+    global _MODEL_CACHE, _CACHE_KEY
+
+    # Build a stable cache key from the threshold values
+    cache_key = str(sorted(
+        (k, v.get("low"), v.get("high"))
+        for k, v in thresholds.items()
+    ))
+
+    if _MODEL_CACHE is not None and _CACHE_KEY == cache_key:
+        return _MODEL_CACHE["path"], _MODEL_CACHE["thresholds"]
+
     BASE_DIR = r"C:\Users\Bruger\PycharmProjects\P8Project\backend\model"
     CSV_PATH = os.path.join(BASE_DIR, "dataREanonymized_long.csv")
 
@@ -124,5 +138,8 @@ def train_dynamic_model(thresholds: dict) -> tuple:
         },
         output_path,
     )
+
+    _MODEL_CACHE = {"path": output_path, "thresholds": effective_thresholds}
+    _CACHE_KEY = cache_key
 
     return output_path, effective_thresholds

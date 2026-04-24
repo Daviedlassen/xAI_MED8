@@ -102,9 +102,9 @@
 }
 
 .changeable-box {
-
   flex-shrink: 0;
-  width: 32.5%;
+  width: auto;           /* was 32.5% — let content dictate width */
+  min-width: 40.5%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -177,10 +177,27 @@
   padding: 6px 0;
 }
 
+/* mRS card — reliable fixed width instead of % */
+.mrs-card {
+  flex-shrink: 0;
+  width: 220px;          /* fixed px — no percentage ambiguity */
+  height: 100%;
+  background: linear-gradient(180deg, #fff 0%, #fbfbfd 100%);
+  border-radius: var(--radius);
+  border: var(--border);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
 .mrs-ring {
-  width: 130px;
-  height: 130px;
+  width: 110px;          /* was 130px — fits comfortably in 188px card */
+  height: 110px;
   border-radius: 50%;
+    /* noinspection CssUnresolvedCustomProperty */
   background: conic-gradient(
     var(--ring-color, #34c759) 0% var(--progress, 0%),
     #e5e5ea var(--progress, 0%) 100%
@@ -192,6 +209,8 @@
   flex-shrink: 0;
   transition: background 0.5s ease;
 }
+
+.mrs-score-num { font-size: 28px; font-weight: 900; color: #1c1c1e; line-height: 1; }
 
 .mrs-ring::before {
   content: "";

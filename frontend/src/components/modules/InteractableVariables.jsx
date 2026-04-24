@@ -1,4 +1,144 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
+
+
+// ── Guideline data ──────────────────────────────────────────────────────────
+const GUIDELINES = {
+  sys_bp: {
+    source:    "American Heart Association",
+    fullTitle: "2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke — American Heart Association / American Stroke Association",
+    section:   "4.3. Blood Pressure Management",
+    redBox:    "Recommendations for Blood Pressure Management. Referenced studies that support the recommendations are summarized in the online data supplement.",
+    rows: [
+      { cor: "1",  loe: "C-LD", corColor: "#3a8f5a", loeColor: "#3a8f5a",
+        text: "In patients with AIS, hypotension and hypovolemia should be corrected to maintain systemic perfusion levels necessary to support organ function." },
+      { cor: "1",  loe: "C-EO", corColor: "#3a8f5a", loeColor: "#3a8f5a",
+        text: "In patients with AIS, early treatment of hypertension is indicated when required by comorbid conditions (eg, concomitant acute coronary event, acute heart failure, aortic dissection, post-thrombolysis sICH, or preeclampsia/eclampsia) to reduce the risk of complications." },
+      { cor: "2b", loe: "C-EO", corColor: "#c47d1a", loeColor: "#c47d1a",
+        text: "In patients with BP ≥220/120 mm Hg who did not receive IVT or EVT and have no comorbid conditions requiring urgent antihypertensive treatment, the benefit of initiating or reinitiating treatment of hypertension within the first 48 hours is uncertain." },
+    ],
+  },
+  dis_bp: {
+    source:    "American Heart Association",
+    fullTitle: "2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke — American Heart Association / American Stroke Association",
+    section:   "4.3. Blood Pressure Management",
+    redBox:    "Recommendations for Blood Pressure Management. Referenced studies that support the recommendations are summarized in the online data supplement.",
+    rows: [
+      { cor: "1",  loe: "C-LD", corColor: "#3a8f5a", loeColor: "#3a8f5a",
+        text: "In patients with AIS, hypotension and hypovolemia should be corrected to maintain systemic perfusion levels necessary to support organ function." },
+      { cor: "1",  loe: "C-EO", corColor: "#3a8f5a", loeColor: "#3a8f5a",
+        text: "Early treatment of hypertension is indicated when required by comorbid conditions." },
+    ],
+  },
+  glucose: {
+    source:    "American Heart Association",
+    fullTitle: "2026 Guideline for the Early Management of Patients With Acute Ischemic Stroke — American Heart Association / American Stroke Association",
+    section:   "4.4. Glucose Management",
+    redBox:    "Recommendations for Glucose Management. Referenced studies are summarized in the online data supplement.",
+    rows: [
+      { cor: "1",  loe: "C-LD", corColor: "#3a8f5a", loeColor: "#3a8f5a",
+        text: "Hypoglycemia (blood glucose <60 mg/dL) should be treated in patients with AIS." },
+      { cor: "2a", loe: "C-LD", corColor: "#3a7ab5", loeColor: "#3a7ab5",
+        text: "It is reasonable to treat hyperglycemia to achieve blood glucose levels in the range of 140–180 mg/dL and to closely monitor to prevent hypoglycemia." },
+    ],
+  },
+  cholesterol: {
+    source:    "American Heart Association",
+    fullTitle: "2019 ACC/AHA Guideline on the Primary Prevention of Cardiovascular Disease — American Heart Association",
+    section:   "6.1. LDL Cholesterol Targets",
+    redBox:    "Recommendations for LDL Cholesterol Management. Referenced studies are summarized in the online data supplement.",
+    rows: [
+      { cor: "1",  loe: "A",    corColor: "#3a8f5a", loeColor: "#3a8f5a",
+        text: "In patients with clinical ASCVD, reduce LDL-C by ≥50% from baseline and aim for LDL-C <70 mg/dL." },
+      { cor: "2a", loe: "B-R",  corColor: "#3a7ab5", loeColor: "#3a7ab5",
+        text: "In very high-risk ASCVD, a LDL-C goal of <55 mg/dL is reasonable." },
+    ],
+  },
+};
+
+// ── Guideline Overlay ───────────────────────────────────────────────────────
+const GuidelineOverlay = ({ data, onClose }) => (
+  <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0, overflow: "hidden" }}>
+
+    {/* Dark header bar */}
+    <div style={{
+      background: "#111", color: "#fff", padding: "10px 12px",
+      display: "flex", alignItems: "flex-start", gap: 10, flexShrink: 0,
+    }}>
+      {/* AHA logo mark */}
+      <div style={{
+        width: 34, height: 34, borderRadius: "50%", background: "#c8102e",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        flexShrink: 0, fontSize: 17, lineHeight: 1,
+      }}>❤</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 9, color: "#aaa", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em" }}>
+          NOW READING:
+        </div>
+        <div style={{ fontSize: 10.5, fontWeight: 700, lineHeight: 1.4 }}>
+          {data.fullTitle}
+        </div>
+      </div>
+      <button
+        onClick={onClose}
+        style={{
+          background: "none", border: "1.5px solid #555", borderRadius: "50%",
+          color: "#fff", width: 22, height: 22, cursor: "pointer", flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 12, lineHeight: 1, marginTop: 2,
+        }}
+      >✕</button>
+    </div>
+
+    {/* Scrollable body */}
+    <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "14px 16px" }}>
+      <h2 style={{ fontSize: 18, fontWeight: 900, marginBottom: 12, color: "#1c1c1e" }}>
+        {data.section}
+      </h2>
+
+      {/* Red box */}
+      <div style={{
+        background: "#c8102e", color: "#fff", borderRadius: 6,
+        padding: "10px 13px", marginBottom: 14, fontSize: 11.5,
+        fontWeight: 700, lineHeight: 1.55,
+      }}>
+        {data.redBox.replace("online data supplement", "")}
+        <span style={{ textDecoration: "underline", color: "#a8d8f0" }}>online data supplement</span>.
+      </div>
+
+      {/* Table */}
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11.5 }}>
+        <thead>
+          <tr style={{ background: "#e0e0e5" }}>
+            {["COR", "LOE", "Recommendations"].map((h, i) => (
+              <th key={h} style={{
+                padding: "7px 9px", textAlign: i < 2 ? "center" : "left",
+                fontWeight: 800, border: "1px solid #ccc",
+                width: i < 2 ? 52 : undefined,
+              }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.rows.map((row, i) => (
+            <tr key={i}>
+              <td style={{
+                padding: 9, textAlign: "center", fontWeight: 900, fontSize: 14,
+                background: row.corColor, color: "#fff", border: "1px solid #ccc",
+              }}>{row.cor}</td>
+              <td style={{
+                padding: 9, textAlign: "center", fontWeight: 700,
+                background: row.loeColor, color: "#fff", border: "1px solid #ccc",
+              }}>{row.loe}</td>
+              <td style={{ padding: "9px 12px", lineHeight: 1.55, border: "1px solid #ccc", color: "#1c1c1e" }}>
+                {i + 1}. {row.text}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+);
 
 const SLIDER_CONFIG = [
 
@@ -7,6 +147,8 @@ const SLIDER_CONFIG = [
   { key: "glucose",     label: "Glucose",         unit: "mg/dL",min: 20, max: 400, singleThreshold: false, guidelines: "American Heart Association" },
   { key: "cholesterol", label: "LDL Cholesterol", unit: "mg/dL",min: 0,  max: 300, singleThreshold: false, guidelines: "American Heart Association" },
 ];
+
+
 
 const OTHER_CONFIGS = {
   metabolic: [
@@ -61,7 +203,8 @@ const clientXToVal = (el, min, max, clientX) => {
 };
 
 /* ── Compact Gauge Row ── */
-const GaugeRow = ({ s, patientVal, low, high, onUpdate }) => {
+// Change the signature:
+const GaugeRow = ({ s, patientVal, low, high, onUpdate, onGuidelineClick }) => {
   const { min, max, singleThreshold } = s;
   const lowPct  = pct(low,  min, max);
   const highPct = pct(high, min, max);
@@ -145,9 +288,13 @@ const GaugeRow = ({ s, patientVal, low, high, onUpdate }) => {
           </div>
         </div>
       </div>
-      <p className="guideline-text">
+      <p
+        className="guideline-text"
+        style={{ cursor: "pointer" }}
+        onClick={() => onGuidelineClick(s.key)}
+      >
         Threshold based on the clinical guideline –{" "}
-        <span>{s.guidelines}</span>{" "}
+        <span style={{ color: "#c8102e" }}>{s.guidelines}</span>{" "}
         <span className="guideline-icon">⎋</span>
       </p>
     </div>
@@ -199,6 +346,7 @@ const ControlList = ({ list, patientData, readOnly = false }) => (
 const InteractableVariables = ({ patientData, thresholds, onChange, activeCategory }) => {
   // Tabs that show the gauge/slider UI
   const isSliderTab = activeCategory === "top" || activeCategory === "cardio";
+  const [openGuideline, setOpenGuideline] = useState(null);
 
   // Map tab id → OTHER_CONFIGS key
   const otherKey = useMemo(() => {
@@ -223,6 +371,18 @@ const InteractableVariables = ({ patientData, thresholds, onChange, activeCatego
     });
   }, [onChange]);
 
+  // If a guideline is open, show it instead of the normal panel content
+  if (openGuideline && GUIDELINES[openGuideline]) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
+        <GuidelineOverlay
+          data={GUIDELINES[openGuideline]}
+          onClose={() => setOpenGuideline(null)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
       <div className="panel-title">
@@ -244,6 +404,7 @@ const InteractableVariables = ({ patientData, thresholds, onChange, activeCatego
                 low={low}
                 high={high}
                 onUpdate={makeUpdater(s.key, s.min, s.max)}
+                onGuidelineClick={setOpenGuideline}   // ← new
               />
             );
           })}
